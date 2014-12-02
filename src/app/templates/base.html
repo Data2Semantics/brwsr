@@ -1,0 +1,39 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}brwsr{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+  <!-- ... -->
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>brwsr</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                {% block resource_description %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script src="{{url_for('.static', filename='brwsr.js')}}"></script>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='bootstrap.min.css')}}">
+{% endblock %}
+
+{% block bootstrap_js_bottom %}
+    
+{% endblock %}
