@@ -5,7 +5,7 @@
 
 {% for group in results|groupby(attribute='s') %}
   {% if group.grouper.value == resource %}
-  <h4>{{ group.grouper.value }}<h4>
+  <h4>{{ group.grouper.value }}</h4>
   <table class="table table-striped">
     <thead>
       <tr><th>predicate</th><th>object</th>
@@ -29,7 +29,7 @@
 
 {% for group in results|groupby(attribute='o') %}
   {% if group.grouper.value == resource %}
-  <h4>{{ group.grouper.value }}<h4>
+  <h4>{{ group.grouper.value }}</h4>
   <table class="table table-striped">
     <thead>
       <tr><th>object</th><th>predicate</th>
