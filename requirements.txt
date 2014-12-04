@@ -8,7 +8,9 @@ html5lib==0.999
 isodate==0.5.1
 itsdangerous==0.24
 pyparsing==2.0.3
+rdfextras==0.4
 rdflib==4.1.2
+rdflib-jsonld==0.2
 requests==2.4.3
 six==1.8.0
 wsgiref==0.1.2

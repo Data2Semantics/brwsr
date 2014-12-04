@@ -3,55 +3,64 @@
 {% block resource_description %}
 
 
-{% for group in results|groupby(attribute='s') %}
-  {% if group.grouper.value == resource %}
-  <h4>{{ group.grouper.value }}</h4>
-  <table class="table table-striped">
-    <thead>
-      <tr><th>predicate</th><th>object</th>
-    </thead>
-    <tbody>
-      {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
-      <tr><td><span class="resource">{{ predicate.grouper.value }}</span></td><td>
-        {% for object in predicate.list %}
-          {% if object.o.type == 'uri' %}
-            <span class="resource">{{ object.o.value }}</span><br/>
-          {% else  %}
-            <span class="literal">{{ object.o.value }}</span><br/>
-          {% endif %}
+{% if results|length > 0 %}
+  {% for group in results|groupby(attribute='s') %}
+  
+  
+    {% if group.grouper.value == resource %}
+    <h4>{{ resource }}</h4>
+    <table class="table table-striped">
+      <thead>
+        <tr><th>predicate</th><th>object</th>
+      </thead>
+      <tbody>
+        {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
+        <tr><td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td><td>
+          {% for object in predicate.list %}
+            {% if object.o.type == 'uri' %}
+              <span class="resource" local="{{ object.o.local }}">{{ object.o.value }}</span><br/>
+            {% else  %}
+              <span class="literal" lang="{{ object.o.lang }}">{{ object.o.value }}</span><br/>
+            {% endif %}
+          {% endfor %}
+        </td></tr>
         {% endfor %}
-      </td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endfor %}
 
-{% for group in results|groupby(attribute='o') %}
-  {% if group.grouper.value == resource %}
-  <h4>{{ group.grouper.value }}</h4>
-  <table class="table table-striped">
-    <thead>
-      <tr><th>object</th><th>predicate</th>
-    </thead>
-    <tbody>
-      {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
-      <tr><td>
-        {% for subject in predicate.list %}
-          {% if subject.s.type == 'uri' %}
-            <span class="resource">{{ subject.s.value }}</span><br/>
-          {% else  %}
-            <span class="literal">{{ subject.s.value }}</span><br/>
-          {% endif %}
+  {% for group in results|groupby(attribute='o') %}
+    {% if group.grouper.value ==  resource %}
+    <h4>{{ resource }}</h4>
+    <table class="table table-striped">
+      <thead>
+        <tr><th>object</th><th>predicate</th>
+      </thead>
+      <tbody>
+        {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
+        <tr><td>
+          {% for subject in predicate.list %}
+            {% if subject.s.type == 'uri' %}
+              <span class="resource" local="{{ subject.s.local }}">{{ subject.s.value }}</span><br/>
+            {% else  %}
+              <span class="literal">{{ subject.s.value }}</span><br/>
+            {% endif %}
+          {% endfor %}
+        </td>
+        <td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td>
+        </tr>
         {% endfor %}
-      </td>
-      <td><span class="resource">{{ predicate.grouper.value }}</span></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endfor %}
+
+{% else %}
+
+  No results found
+
+{% endif %}
 
 
 

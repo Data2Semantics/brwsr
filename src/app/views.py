@@ -1,40 +1,116 @@
 from flask import render_template, g, request, jsonify, make_response, redirect, url_for, abort
+from werkzeug.http import parse_accept_header
 import logging
+from urlparse import urljoin, urlsplit
 from client import visit
 from app import app
+
+
 
 log = app.logger
 log.setLevel(logging.DEBUG)
 
 
-DEFAULT_BASE = "http://dbpedia.org/resource/"
-START_LOCAL_NAME = "Amsterdam"
-START_URI = DEFAULT_BASE + START_LOCAL_NAME
+DEFAULT_BASE = "http://dbpedia.org"
 
-@app.route('/id/<resource_suffix>')
-def redirect(resource_suffix):
-    print "ID Retrieved resource_suffix " + resource_suffix
-    if resource_suffix.startswith('http'):
-        abort(500)
-    redirect_url = url_for('document',resource_suffix=resource_suffix,_external=True)
+LOCAL_DOCUMENT_INFIX = 'doc'
+LOCAL_SERVER_NAME = "http://localhost:5000"
+
+START_LOCAL_NAME = "resource/Amsterdam"
+START_URI = urljoin(DEFAULT_BASE,START_LOCAL_NAME)
+
+
+def localize_results(results):
+    log.debug("Localizing results")
+    local_results = []
     
-    print "ID Redirecting to "+redirect_url
-    return redirect(redirect_url)
+    for result in results:
+        local_result = {}
+        for v in ['s','p','o']:
+            if result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
+                local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
+                local_result[v] = result[v]
+                local_result[v]['local'] = local_uri
+            else :
+                local_result[v] = result[v]
+                local_result[v]['local'] = result[v]['value']
+                
+                
+        local_results.append(local_result)
+    
+    return local_results
     
 
-@app.route('/doc/<resource_suffix>')
+
+    
+
 def document(resource_suffix):
     if resource_suffix :
         uri = u"{}/{}".format(DEFAULT_BASE,resource_suffix)
     else :
         uri = START_URI
-        
-    return render_template('resource.html', resource=uri, results=visit(uri))
     
+    log.debug('The URI we will use is: ' + uri)    
+        
+    if 'Accept' in request.headers:
+        mimetype = parse_accept_header(request.headers['Accept']).best
+    else :
+        print "No accept header, using 'text/html'"
+        mimetype = 'text/html'
+    
+    if mimetype in ['text/html','application/xhtml_xml','*/*']:
+        local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
+        print local_resource_uri
+        results = visit(uri,format='html')["results"]["bindings"]
+        local_results = localize_results(results)
+        
+        return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
+    elif mimetype in ['application/json']:
+        response = make_response(visit(uri,format='jsonld'),200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    elif mimetype in ['application/rdf+xml','application/xml']:
+        response = make_response(visit(uri,format='rdfxml'),200)
+        response.headers['Content-Type'] = 'application/rdf+xml'
+        return response
+    elif mimetype in ['application/x-turtle']:
+        response = make_response(visit(uri,format='turtle'),200)
+        response.headers['Content-Type'] = 'application/x-turtle'
+        return response
+
+@app.route('/<path:resource_suffix>')
+def redirect(resource_suffix):
+    
+    if resource_suffix.startswith('doc/'):
+        print "DOC Retrieved resource_suffix " + resource_suffix
+        return document(resource_suffix[4:])
+    else :
+        print "ID Retrieved resource_suffix " + resource_suffix
+        if resource_suffix.startswith('http'):
+            abort(500)
+        
+        resource_suffix = u"doc/{}".format(resource_suffix)
+        
+        redirect_url = url_for('redirect',resource_suffix=resource_suffix,_external=True)
+    
+        response = make_response('Moved permanently',303)
+        response.headers['Location'] = redirect_url
+        response.headers['Accept'] = request.headers['Accept']
+    
+        return response
 
     
 @app.route('/')
 def index():
-    redirect_url = url_for('document',resource_suffix=START_LOCAL_NAME,_external=True)
+    redirect_url = url_for('redirect',resource_suffix=START_LOCAL_NAME,_external=True,_scheme="http")
     print "ROOT Redirecting to "+redirect_url
-    return redirect(redirect_url)
+    
+    response = make_response('Moved permanently',303)
+    response.headers['Location'] = redirect_url
+    response.headers['Accept'] = request.headers['Accept']
+    
+    return response
+    
+
+    
+    
