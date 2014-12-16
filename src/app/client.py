@@ -2,6 +2,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON, XML, TURTLE
 import json
 import logging
 import requests
+import config
 from app import app
 import rdfextras
 rdfextras.registerplugins()
@@ -9,7 +10,7 @@ rdfextras.registerplugins()
 log = app.logger
 log.setLevel(logging.DEBUG)
 
-SPARQL_ENDPOINT = "http://live.dbpedia.org/sparql"
+SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
 
 sparql = SPARQLWrapper(SPARQL_ENDPOINT)
 

@@ -3,6 +3,7 @@ from werkzeug.http import parse_accept_header
 import logging
 from urlparse import urljoin, urlsplit
 from client import visit
+import config
 from app import app
 
 
@@ -10,14 +11,13 @@ from app import app
 log = app.logger
 log.setLevel(logging.DEBUG)
 
+DEFAULT_BASE = config.DEFAULT_BASE
+LOCAL_DOCUMENT_INFIX = config.LOCAL_DOCUMENT_INFIX
+LOCAL_SERVER_NAME = config.LOCAL_SERVER_NAME
+START_LOCAL_NAME = config.START_LOCAL_NAME
+START_URI = config.START_URI
 
-DEFAULT_BASE = "http://dbpedia.org"
 
-LOCAL_DOCUMENT_INFIX = 'doc'
-LOCAL_SERVER_NAME = "http://localhost:5000"
-
-START_LOCAL_NAME = "resource/Amsterdam"
-START_URI = urljoin(DEFAULT_BASE,START_LOCAL_NAME)
 
 
 def localize_results(results):
