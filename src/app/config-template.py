@@ -28,3 +28,6 @@ START_LOCAL_NAME = "some/local/name"
 # (i.e. there is no need to change this, usually)
 # e.g. this will become "http://dbpedia.org/resource/Amsterdam"
 START_URI = urljoin(DEFAULT_BASE,START_LOCAL_NAME)
+
+# Set query results limit because otherwise your browser might crash.
+QUERY_RESULTS_LIMIT = 1000

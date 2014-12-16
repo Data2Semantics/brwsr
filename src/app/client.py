@@ -11,6 +11,7 @@ log = app.logger
 log.setLevel(logging.DEBUG)
 
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
+QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
 
 sparql = SPARQLWrapper(SPARQL_ENDPOINT)
 
@@ -33,7 +34,9 @@ def visit(url, format='html'):
                 ?s ?p <{url}>.
                 BIND(<{url}> as ?o)
             }}
-        }}""".format(url=url)
+        }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
+
+        print q
 
         sparql.setQuery(q)
         
