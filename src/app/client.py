@@ -20,23 +20,40 @@ labels = {}
 def visit(url, format='html'):
     log.debug("Starting query")
     
-    sparql.setQuery(u"DESCRIBE <{}>".format(url))
-    
     print u"Format: " + format
     
     
     if format == 'html': 
+        q = u"""SELECT ?s ?p ?o WHERE {{
+            {{
+                <{url}> ?p ?o .
+                BIND(<{url}> as ?s)
+            }} UNION {{
+                ?s ?p <{url}>.
+                BIND(<{url}> as ?o)
+            }}
+        }}""".format(url=url)
+
+        sparql.setQuery(q)
+        
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-    elif format == 'jsonld':
-        sparql.setReturnFormat(XML)
-        results = sparql.query().convert().serialize(format='json-ld')
-    elif format == 'rdfxml':
-        sparql.setReturnFormat(XML)
-        results = sparql.query().convert().serialize(format='pretty-xml')
-    elif format == 'turtle':
-        sparql.setReturnFormat(XML)
-        results = sparql.query().convert().serialize(format='turtle')
+        
+    else: 
+        q = u"DESCRIBE <{}>".format(url)
+        sparql.setQuery(q)
+        
+        if format == 'jsonld':
+            sparql.setReturnFormat(XML)
+            results = sparql.query().convert().serialize(format='json-ld')
+        elif format == 'rdfxml':
+            sparql.setReturnFormat(XML)
+            results = sparql.query().convert().serialize(format='pretty-xml')
+        elif format == 'turtle':
+            sparql.setReturnFormat(XML)
+            results = sparql.query().convert().serialize(format='turtle')
+        else :
+            results = 'Nothing'
     
     log.debug("Received results")
     
