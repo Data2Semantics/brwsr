@@ -105,6 +105,9 @@ def redirect(resource_suffix):
     
         return response
 
+@app.route('/sparql')
+def sparql():
+    return render_template('sparql.html',endpoint=config.SPARQL_ENDPOINT)
     
 @app.route('/')
 def index():
