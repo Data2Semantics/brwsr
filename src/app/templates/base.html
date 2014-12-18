@@ -11,7 +11,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>brwsr</h1>
+                <h1>brwsr <small class="vsmall"><a href="/">brws</a>, <a href="/sparql">qry</a></small></h1>
             </div>
         </div>
         <div class="row">
@@ -30,6 +30,12 @@
 
 {% block styles %}
 {{super()}}
+
+<style>
+.vsmall {
+	font-size: 9px;
+}
+</style>
 <link rel="stylesheet"
       href="{{url_for('.static', filename='bootstrap.min.css')}}">
 {% endblock %}
