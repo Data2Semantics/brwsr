@@ -1,0 +1,9 @@
+.literal:hover {
+  font-weight: bolder;
+}
+
+td div {
+  max-height: 200px;
+  overflow: auto;
+  
+}

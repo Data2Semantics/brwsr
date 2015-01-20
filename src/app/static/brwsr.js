@@ -16,7 +16,7 @@ $( document ).ready(function() {
     $(".literal").each(function(index){
         var element = this;
         var element_text = $(this).text();
-        if (element_text.length > 50 ) {
+        if (element_text.length > 200 ) {
 
               var span = $('<span></span>');
 
@@ -26,14 +26,33 @@ $( document ).ready(function() {
                 span.append(lang);
               }
               
-              span.append(element_text.substr(0,200) + '...');
+              var dotdot = $('<span>...</span>');
+              var head = $('<span></span>');
+              head.append(element_text.substr(0,200));
               
-              var icon = $('<span class="glyphicon glyphicon-play" aria-hidden="true"></span>');
-              span.append(icon);
+              var open = $('<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>');
               
-              icon.on('click', function(e){
-                  span.text(element_text);
+              var tail = $('<span></span>');
+              tail.append(element_text.substr(200));
+              
+              var close = $('<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>');
+              
+              span.append(head);
+              span.append(dotdot);
+              span.append(open);
+              span.append(tail);
+              span.append(close);
+              tail.hide();
+              close.hide();
+              
+              span.on('click', function(e){
+                close.toggle();
+                tail.toggle();
+                dotdot.toggle();
+                open.toggle();
               });
+
+              
               $(element).html(span);
           } 
     });
