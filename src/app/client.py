@@ -26,7 +26,7 @@ def visit(url, format='html'):
     
     
     if format == 'html': 
-        q = u"""SELECT ?s ?p ?o WHERE {{
+        q = u"""SELECT DISTINCT ?s ?p ?o WHERE {{
             {{
                 <{url}> ?p ?o .
                 BIND(<{url}> as ?s)
