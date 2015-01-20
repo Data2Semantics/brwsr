@@ -4,6 +4,7 @@ import logging
 from urlparse import urljoin, urlsplit
 from client import visit
 import config
+import traceback
 from app import app
 
 
@@ -58,25 +59,30 @@ def document(resource_suffix):
         print "No accept header, using 'text/html'"
         mimetype = 'text/html'
     
-    if mimetype in ['text/html','application/xhtml_xml','*/*']:
-        local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
-        print local_resource_uri
-        results = visit(uri,format='html')["results"]["bindings"]
-        local_results = localize_results(results)
+    try:
+        if mimetype in ['text/html','application/xhtml_xml','*/*']:
+            local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
+            print local_resource_uri
+            results = visit(uri,format='html')["results"]["bindings"]
+            local_results = localize_results(results)
         
-        return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
-    elif mimetype in ['application/json']:
-        response = make_response(visit(uri,format='jsonld'),200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    elif mimetype in ['application/rdf+xml','application/xml']:
-        response = make_response(visit(uri,format='rdfxml'),200)
-        response.headers['Content-Type'] = 'application/rdf+xml'
-        return response
-    elif mimetype in ['application/x-turtle']:
-        response = make_response(visit(uri,format='turtle'),200)
-        response.headers['Content-Type'] = 'application/x-turtle'
-        return response
+            return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
+        elif mimetype in ['application/json']:
+            response = make_response(visit(uri,format='jsonld'),200)
+            response.headers['Content-Type'] = 'application/json'
+            return response
+        elif mimetype in ['application/rdf+xml','application/xml']:
+            response = make_response(visit(uri,format='rdfxml'),200)
+            response.headers['Content-Type'] = 'application/rdf+xml'
+            return response
+        elif mimetype in ['application/x-turtle']:
+            response = make_response(visit(uri,format='turtle'),200)
+            response.headers['Content-Type'] = 'application/x-turtle'
+            return response
+    except Exception as e:
+        log.error(e)
+        log.error(traceback.format_exc())
+        return traceback.format_exc()
 
 @app.route('/<path:resource_suffix>')
 def redirect(resource_suffix):
@@ -99,6 +105,9 @@ def redirect(resource_suffix):
     
         return response
 
+@app.route('/sparql')
+def sparql():
+    return render_template('sparql.html',endpoint=config.SPARQL_ENDPOINT)
     
 @app.route('/')
 def index():
