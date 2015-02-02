@@ -32,7 +32,7 @@ server {
 
 
     location /socket.io {
-        proxy_pass http://127.0.0.1:5400/socket.io;
+        proxy_pass http://127.0.0.1:5000/socket.io;
         proxy_redirect off;
         proxy_buffering off;
 
@@ -48,7 +48,7 @@ server {
     location / {
         add_header Access-Control-Allow-Origin *;
 
-        proxy_pass http://127.0.0.1:5400;
+        proxy_pass http://127.0.0.1:5000;
         proxy_redirect off;
 
         proxy_set_header Host $host;
