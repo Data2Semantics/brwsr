@@ -7,3 +7,10 @@ td div {
   overflow: auto;
   
 }
+
+.img {
+  height: 50px;
+  float: left;
+  margin-left: -50px;
+  margin-top: 18px;
+}

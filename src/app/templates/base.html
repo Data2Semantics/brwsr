@@ -11,13 +11,19 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>brwsr <small class="vsmall"><a href="/">brws</a>, <a href="/sparql">qry</a></small></h1>
+                <a href="http://www.data2semantics.org" target="_new"><img class='img' src="{{url_for('.static', filename='logo-no-text-150dpi.png')}}"/></a><h1>brwsr <small class="vsmall"><a href="/">brws</a>, <a href="/sparql">qry</a></small></h1>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 {% block brwsr_content %}
                 {% endblock %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+              <hr/>
+              <p class="text-left small"><span class="glyphicon glyphicon-copyright-mark"></span> 2015 - Rinke Hoekstra, VU University Amsterdam, work supported by <a href="http://www.data2semantics.org">Data2Semantics</a>, a <a href="http://www.commit-nl.nl">COMMIT/</a> project. See <a href="http://github.com/Data2Semantics/brwsr">http://github.com/Data2Semantics/brwsr</a>.</p>
             </div>
         </div>
     </div>
