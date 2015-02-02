@@ -8,7 +8,7 @@ SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
 # Requests to brwsr only include the local name (i.e. the the part after the third slash '/'), 
 # the DEFAULT_BASE is *always* prepended to this local name to make up the URI that's used to 
 # query the triple store
-# e.g. "http://dbpedia.org/"
+# e.g. "http://dbpedia.org" (without the last slash!)
 DEFAULT_BASE = "http://your.base.uri.here"
 
 # The LOCAL_DOCUMENT_INFIX is the infix used between the DEFAULT_BASE and the local name of the URI 
