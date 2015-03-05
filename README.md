@@ -59,5 +59,28 @@ server {
 
 ```
 
+#### Running `brwsr` at a relative location other than '/'
+If for some reason you want or need to run brwsr at a relative path other than '/', you should do two things:
+
+1. Set the `BEHIND_PROXY` parameter in your `config.py` to `True`
+2. Setup a Nginx proxy along the lines of the below example (adapted from <http://flask.pocoo.org/snippets/35/>):
+
+```
+location /myprefix {
+  proxy_pass http://localhost:5000;
+  proxy_set_header Host $host;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Scheme $scheme;
+  proxy_set_header X-Script-Name /myprefix;
+}
+```
+
+Where `myprefix` should be set to the location you want to be running brwsr under
+
+The `proxy_pass` setting should point to the address and port you are running brwsr at (default is localhost port 5000).
+
+
 ### Acknowledgements
 This work was funded by the Dutch national programme COMMIT/
