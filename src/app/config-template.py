@@ -20,6 +20,31 @@ LOCAL_DOCUMENT_INFIX = 'doc'
 # e.g. "http://localhost:5000" if running flask.
 LOCAL_SERVER_NAME = "http://your.server.name.here"
 
+# By default brwsr assumes it is running at the root of the server, 
+# If you want to run brwsr under a directory (e.g. http://example.com/brwsr rather than http://example.com), you need to do this
+# via a reverse proxy, and tell brwsr about it (set BEHIND_PROXY to True)
+#
+#########
+# Example Nginx configuration (adapted from http://flask.pocoo.org/snippets/35/)
+#########
+#
+# location /myprefix {
+#        proxy_pass http://localhost:5000;
+#        proxy_set_header Host $host;
+#        proxy_set_header Upgrade $http_upgrade;
+#        proxy_set_header Connection "upgrade";
+#        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#        proxy_set_header X-Scheme $scheme;
+#        proxy_set_header X-Script-Name /myprefix;
+#        }
+#
+# Where 'myprefix' should be set to the location you want to be running brwsr under
+# The 'proxy_pass' setting should point to the address and port you are running brwsr at (default is localhost port 5000).
+#
+#########
+BEHIND_PROXY = False
+
+
 # The START_LOCAL_NAME is the local name of the first URI shown in brwsr if no URI is specified
 # e.g. "resource/Amsterdam" when using the DBPedia settings
 START_LOCAL_NAME = "some/local/name"
