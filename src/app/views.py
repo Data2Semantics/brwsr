@@ -87,7 +87,7 @@ def document(resource_suffix):
 @app.route('/<path:resource_suffix>')
 def redirect(resource_suffix):
     
-    if resource_suffix.startswith('doc/'):
+    if resource_suffix.startswith('{}/'.format(LOCAL_DOCUMENT_INFIX)):
         print "DOC Retrieved resource_suffix " + resource_suffix
         return document(resource_suffix[4:])
     else :
@@ -95,7 +95,7 @@ def redirect(resource_suffix):
         if resource_suffix.startswith('http'):
             abort(500)
         
-        resource_suffix = u"doc/{}".format(resource_suffix)
+        resource_suffix = u"{}/{}".format(LOCAL_DOCUMENT_INFIX,resource_suffix)
         
         redirect_url = url_for('redirect',resource_suffix=resource_suffix,_external=True)
     
