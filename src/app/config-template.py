@@ -56,3 +56,6 @@ START_URI = urljoin(DEFAULT_BASE,START_LOCAL_NAME)
 
 # Set query results limit because otherwise your browser might crash.
 QUERY_RESULTS_LIMIT = 1000
+
+# The port via which to run brwsr
+PORT = 5000
