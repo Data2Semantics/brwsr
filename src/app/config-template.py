@@ -59,3 +59,6 @@ QUERY_RESULTS_LIMIT = 1000
 
 # The port via which to run brwsr
 PORT = 5000
+
+# Debug logging
+DEBUG = False

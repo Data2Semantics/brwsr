@@ -22,8 +22,6 @@ labels = {}
 def visit(url, format='html'):
     log.debug("Starting query")
     
-    print u"Format: " + format
-    
     
     if format == 'html': 
         q = u"""SELECT DISTINCT ?s ?p ?o WHERE {{
@@ -36,7 +34,7 @@ def visit(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
-        print q
+        log.debug(q)
 
         sparql.setQuery(q)
         

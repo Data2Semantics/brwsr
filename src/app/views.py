@@ -60,13 +60,12 @@ def document(resource_suffix):
     if 'Accept' in request.headers:
         mimetype = parse_accept_header(request.headers['Accept']).best
     else :
-        print "No accept header, using 'text/html'"
+        log.debug("No accept header, using 'text/html'")
         mimetype = 'text/html'
     
     try:
         if mimetype in ['text/html','application/xhtml_xml','*/*']:
             local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
-            print local_resource_uri
             results = visit(uri,format='html')["results"]["bindings"]
             local_results = localize_results(results)
         
@@ -99,7 +98,7 @@ def browse():
         if 'Accept' in request.headers:
             mimetype = parse_accept_header(request.headers['Accept']).best
         else :
-            print "No accept header, using 'text/html'"
+            log.debug("No accept header, using 'text/html'")
             mimetype = 'text/html'
         
         try:
@@ -129,10 +128,10 @@ def browse():
 def redirect(resource_suffix):
     
     if resource_suffix.startswith('{}/'.format(LOCAL_DOCUMENT_INFIX)):
-        print "DOC Retrieved resource_suffix " + resource_suffix
+        log.debug("DOC Retrieved resource_suffix " + resource_suffix)
         return document(resource_suffix[4:])
     else :
-        print "ID Retrieved resource_suffix " + resource_suffix
+        log.debug("ID Retrieved resource_suffix " + resource_suffix)
         if resource_suffix.startswith('http'):
             abort(500)
         
@@ -153,7 +152,7 @@ def sparql():
 @app.route('/')
 def index():
     redirect_url = url_for('redirect',resource_suffix=START_LOCAL_NAME,_external=True,_scheme="http")
-    print "ROOT Redirecting to "+redirect_url
+    log.debug("ROOT Redirecting to "+redirect_url)
     
     response = make_response('Moved permanently',303)
     response.headers['Location'] = redirect_url
