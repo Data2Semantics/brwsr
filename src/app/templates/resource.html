@@ -37,11 +37,13 @@
     <h4>{{ resource }} <span class="badge">relations to</span></h4>
     <table class="table table-striped">
       <thead>
-        <tr><th>object</th><th>predicate</th>
+        <tr><th>predicate</th><th>object</th>
       </thead>
       <tbody>
         {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
-        <tr><td>
+        <tr>
+        <td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td>
+        <td>
           <div>
           {% for subject in predicate.list %}
             {% if subject.s.type == 'uri' %}
@@ -52,7 +54,6 @@
           {% endfor %}
           </div>
         </td>
-        <td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td>
         </tr>
         {% endfor %}
       </tbody>
