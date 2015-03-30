@@ -1,5 +1,6 @@
 from flask import render_template, g, request, jsonify, make_response, redirect, url_for, abort
 from werkzeug.http import parse_accept_header
+from urllib import urlencode
 import logging
 from urlparse import urljoin, urlsplit
 from client import visit
@@ -21,7 +22,7 @@ START_URI = config.START_URI
 
 
 
-def localize_results(results):
+def localize_results(results, asQueryParam=False):
     log.debug("Localizing results")
     local_results = []
     
@@ -29,7 +30,11 @@ def localize_results(results):
         local_result = {}
         for v in ['s','p','o']:
             if result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
-                local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
+                local_uri = ""
+                if asQueryParam: 
+                    local_uri = LOCAL_SERVER_NAME + '/browse?' + urlencode({'uri':result[v]['value']})
+                else:
+                    local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
                 local_result[v] = result[v]
                 local_result[v]['local'] = local_uri
             else :
@@ -41,7 +46,6 @@ def localize_results(results):
     
     return local_results
     
-
 
     
 
@@ -84,6 +88,43 @@ def document(resource_suffix):
         log.error(traceback.format_exc())
         return traceback.format_exc()
 
+
+@app.route('/browse')
+def browse():
+    uri = request.args.get('uri')
+    
+    if uri is None:
+        abort(500)
+    else :
+        if 'Accept' in request.headers:
+            mimetype = parse_accept_header(request.headers['Accept']).best
+        else :
+            print "No accept header, using 'text/html'"
+            mimetype = 'text/html'
+        
+        try:
+            if mimetype in ['text/html','application/xhtml_xml','*/*']:
+                results = visit(uri,format='html')["results"]["bindings"]
+                local_results = localize_results(results, True)
+                return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results)
+            elif mimetype in ['application/json']:
+                response = make_response(visit(uri,format='jsonld'),200)
+                response.headers['Content-Type'] = 'application/json'
+                return response
+            elif mimetype in ['application/rdf+xml','application/xml']:
+                response = make_response(visit(uri,format='rdfxml'),200)
+                response.headers['Content-Type'] = 'application/rdf+xml'
+                return response
+            elif mimetype in ['application/x-turtle']:
+                response = make_response(visit(uri,format='turtle'),200)
+                response.headers['Content-Type'] = 'application/x-turtle'
+                return response
+        except Exception as e:
+            log.error(e)
+            log.error(traceback.format_exc())
+            return traceback.format_exc()
+    
+    
 @app.route('/<path:resource_suffix>')
 def redirect(resource_suffix):
     
