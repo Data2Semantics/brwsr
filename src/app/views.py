@@ -93,7 +93,7 @@ def browse():
     uri = request.args.get('uri')
     
     if uri is None:
-        abort(500)
+        return document()
     else :
         if 'Accept' in request.headers:
             mimetype = parse_accept_header(request.headers['Accept']).best
