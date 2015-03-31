@@ -49,7 +49,7 @@ def localize_results(results, asQueryParam=False):
 
     
 
-def document(resource_suffix):
+def document(resource_suffix = ""):
     if resource_suffix :
         uri = u"{}/{}".format(DEFAULT_BASE,resource_suffix)
     else :
@@ -151,14 +151,18 @@ def sparql():
     
 @app.route('/')
 def index():
-    redirect_url = url_for('redirect',resource_suffix=START_LOCAL_NAME,_external=True,_scheme="http")
-    log.debug("ROOT Redirecting to "+redirect_url)
-    
-    response = make_response('Moved permanently',303)
-    response.headers['Location'] = redirect_url
-    response.headers['Accept'] = request.headers['Accept']
-    
-    return response
+    if len(START_LOCAL_NAME) > 0:
+        
+        redirect_url = url_for('redirect',resource_suffix=START_LOCAL_NAME,_external=True,_scheme="http")
+        log.debug("ROOT Redirecting to "+redirect_url)
+        
+        response = make_response('Moved permanently',303)
+        response.headers['Location'] = redirect_url
+        response.headers['Accept'] = request.headers['Accept']
+        
+        return response
+    else:
+        return document()
     
 
     
