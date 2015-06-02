@@ -5,11 +5,10 @@ $( document ).ready(function() {
       var element_text = $(this).text();
       
       if (element_text && element_text.substr(0,4) == 'http') {
-        $.get('http://preflabel.org/api/v1/label/'+encodeURIComponent($(element).text())+"?callback=?", function(data){
-          updateLabel(data,element);
-        }).fail(function(){
-          updateLabel(element_text,element);
-        });
+            updateLabel(element_text,element);
+            $.get('http://preflabel.org/api/v1/label/'+encodeURIComponent($(element).text())+"?callback=?", function(data){
+              updateLabel(data,element);
+            });
       } 
     });
     
