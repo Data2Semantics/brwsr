@@ -47,5 +47,7 @@ except:
     print "WARNING: You are using an older version of the configuration file that does not set the 'BEHIND_PROXY' parameter, have a look at 'config-template.py' to see what to add."
 
 app.debug = True
+if (hasattr(config, 'DEBUG')):
+    app.debug = config.DEBUG
 
 import views

@@ -1,35 +1,35 @@
 {% extends "base.html" %}
 
 {% block brwsr_content %}
-  <div id="yasqe"></div>
-  <div id="yasr"></div>
+  <div id="yasgui"></div>
 {% endblock %}
-
 {% block scripts %}
 {{super()}}
-<script src='http://cdn.jsdelivr.net/yasr/2.4/yasr.bundled.min.js'></script>
-<script src='http://cdn.jsdelivr.net/yasqe/2.2/yasqe.bundled.min.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/yasgui/1.1.4/yasgui.min.js'></script>
 
 <script>
-	var yasqe = YASQE(document.getElementById("yasqe"), {
-		sparql: {
-			showQueryButton: true,
-	        endpoint: "{{ endpoint }}"
-		}
-	});
-	var yasr = YASR(document.getElementById("yasr"), {
-		//this way, the URLs in the results are prettified using the defined prefixes in the query
-		getUsedPrefixes: yasqe.getPrefixesFromQuery
-	});
- 
-	//link both together
-	yasqe.options.sparql.callbacks.complete = yasr.setResponse;
+  YASGUI.YASQE.defaults.sparql.endpoint = "{{ endpoint }}";
+  var yasgui = YASGUI(document.getElementById("yasgui"));
+  //Mostly for debugging, but we might have changed the endpoint in our config file
+  //in that case, overwrite the yasgui endpoint 
+  //(otherwise we may use the endpoint retrieved from our previous session, which was stored in localstorage)
+  if (yasgui.persistentOptions && yasgui.persistentOptions.tabs) {
+      for (var tabId in yasgui.persistentOptions.tabs) {
+          var tab = yasgui.persistentOptions.tabs[tabId];
+          tab.yasqe.sparql.endpoint = "{{ endpoint }}";
+      }
+  }
+  yasgui.store();
 </script>
 {% endblock %}
 
 {% block styles %}
 {{super()}}
-<link href='http://cdn.jsdelivr.net/g/yasqe@2.2(yasqe.min.css),yasr@2.4(yasr.min.css)' rel='stylesheet' type='text/css'/>
+<link href='//cdnjs.cloudflare.com/ajax/libs/yasgui/1.1.4/yasgui.min.css' rel='stylesheet' type='text/css'/>
+<style>
+.endpointText {display:none !important;}
+table{font-size: 14px;}
+</style>
 {% endblock %}
 
 
