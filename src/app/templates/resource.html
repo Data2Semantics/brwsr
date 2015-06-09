@@ -5,8 +5,8 @@
 
 {% if results|length > 0 %}
   {% for group in results|groupby(attribute='s') %}
-  
-  
+
+
     {% if group.grouper.value == resource %}
     <h4>{{ resource }} <span class="badge">relations from</span></h4>
     <table class="table table-striped">
@@ -37,12 +37,11 @@
     <h4>{{ resource }} <span class="badge">relations to</span></h4>
     <table class="table table-striped">
       <thead>
-        <tr><th>predicate</th><th>object</th>
+        <tr><th>subject</th><th>predicate</th>
       </thead>
       <tbody>
         {% for predicate in group.list|sort(attribute='p')|groupby(attribute='p') %}
         <tr>
-        <td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td>
         <td>
           <div>
           {% for subject in predicate.list %}
@@ -54,6 +53,7 @@
           {% endfor %}
           </div>
         </td>
+        <td><span class="resource" local="{{ predicate.grouper.local }}">{{ predicate.grouper.value }}</span></td>
         </tr>
         {% endfor %}
       </tbody>
