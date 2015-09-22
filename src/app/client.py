@@ -12,8 +12,12 @@ log.setLevel(logging.DEBUG)
 
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
 QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
+CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
 
 sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+
+for key, value in CUSTOM_PARAMETERS.items():
+    sparql.addParameter(key, value)
 
 
 labels = {}
@@ -21,9 +25,9 @@ labels = {}
 
 def visit(url, format='html'):
     log.debug("Starting query")
-    
-    
-    if format == 'html': 
+
+
+    if format == 'html':
         q = u"""SELECT DISTINCT ?s ?p ?o WHERE {{
             {{
                 <{url}> ?p ?o .
@@ -37,14 +41,14 @@ def visit(url, format='html'):
         log.debug(q)
 
         sparql.setQuery(q)
-        
+
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-        
-    else: 
+
+    else:
         q = u"DESCRIBE <{}>".format(url)
         sparql.setQuery(q)
-        
+
         if format == 'jsonld':
             sparql.setReturnFormat(XML)
             results = sparql.query().convert().serialize(format='json-ld')
@@ -56,10 +60,7 @@ def visit(url, format='html'):
             results = sparql.query().convert().serialize(format='turtle')
         else :
             results = 'Nothing'
-    
-    log.debug("Received results")
-    
-    return results
-    
-    
 
+    log.debug("Received results")
+
+    return results

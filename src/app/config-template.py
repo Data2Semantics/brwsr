@@ -5,13 +5,13 @@ from urlparse import urljoin
 SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
 
 # The DEFAULT_BASE is the prefix of the URI's in the triple store that can be browsed by brwsr
-# Requests to brwsr only include the local name (i.e. the the part after the third slash '/'), 
-# the DEFAULT_BASE is *always* prepended to this local name to make up the URI that's used to 
+# Requests to brwsr only include the local name (i.e. the the part after the third slash '/'),
+# the DEFAULT_BASE is *always* prepended to this local name to make up the URI that's used to
 # query the triple store
 # e.g. "http://dbpedia.org" (without the last slash!)
 DEFAULT_BASE = "http://your.base.uri.here"
 
-# The LOCAL_DOCUMENT_INFIX is the infix used between the DEFAULT_BASE and the local name of the URI 
+# The LOCAL_DOCUMENT_INFIX is the infix used between the DEFAULT_BASE and the local name of the URI
 # to denote the HTML representation of the RDF resource (see the Cool URI's specification)
 LOCAL_DOCUMENT_INFIX = 'doc'
 
@@ -20,7 +20,7 @@ LOCAL_DOCUMENT_INFIX = 'doc'
 # e.g. "http://localhost:5000" if running flask.
 LOCAL_SERVER_NAME = "http://your.server.name.here"
 
-# By default brwsr assumes it is running at the root of the server, 
+# By default brwsr assumes it is running at the root of the server,
 # If you want to run brwsr under a directory (e.g. http://example.com/brwsr rather than http://example.com), you need to do this
 # via a reverse proxy, and tell brwsr about it (set BEHIND_PROXY to True)
 #
@@ -62,3 +62,7 @@ PORT = 5000
 
 # Debug logging
 DEBUG = False
+
+# Set any custom parameters to be sent to the SPARQL endpoint
+# e.g. CUSTOM_PARAMETERS = {'reasoning': 'true'} for Stardog
+CUSTOM_PARAMETERS = {'reasoning': 'true'}
