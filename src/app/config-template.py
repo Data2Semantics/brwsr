@@ -63,6 +63,9 @@ PORT = 5000
 # Debug logging
 DEBUG = False
 
+# Browse URIs that do not match the DEFAULT_BASE
+BROWSE_EXTERNAL_URIS = True
+
 # Set any custom parameters to be sent to the SPARQL endpoint
 # e.g. CUSTOM_PARAMETERS = {'reasoning': 'true'} for Stardog
 CUSTOM_PARAMETERS = {'reasoning': 'true'}
