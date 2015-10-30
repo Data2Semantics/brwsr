@@ -5,7 +5,10 @@
 td div {
   max-height: 200px;
   overflow: auto;
-  
+}
+
+td {
+  width: 50%;
 }
 
 .img {

@@ -28,13 +28,18 @@ def visit(url, format='html'):
 
 
     if format == 'html':
-        q = u"""SELECT DISTINCT ?s ?p ?o WHERE {{
-            {{
-                <{url}> ?p ?o .
-                BIND(<{url}> as ?s)
-            }} UNION {{
-                ?s ?p <{url}>.
-                BIND(<{url}> as ?o)
+        q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
+            GRAPH ?g {{
+                {{
+                    <{url}> ?p ?o .
+                    BIND(<{url}> as ?s)
+                }} UNION {{
+                    ?s ?p <{url}>.
+                    BIND(<{url}> as ?o)
+                }} UNION {{
+                    ?s <{url}> ?o.
+                    BIND(<{url}> as ?p)
+                }}
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 

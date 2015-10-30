@@ -9,7 +9,6 @@ import traceback
 from app import app
 
 
-
 log = app.logger
 log.setLevel(logging.DEBUG)
 
@@ -21,37 +20,32 @@ START_URI = config.START_URI
 BROWSE_EXTERNAL_URIS = config.BROWSE_EXTERNAL_URIS
 
 
-
-
 def localize_results(results):
     log.debug("Localizing results")
     local_results = []
 
     for result in results:
         local_result = {}
-        for v in ['s','p','o']:
+        for v in ['s', 'p', 'o', 'g']:
             if result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
                 local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
                 local_result[v] = result[v]
                 local_result[v]['local'] = local_uri
             elif BROWSE_EXTERNAL_URIS:
-                local_uri = url_for('browse',uri=result[v]['value'],_external=True)
+                local_uri = url_for('browse', uri=result[v]['value'], _external=True)
                 local_result[v] = result[v]
                 local_result[v]['local'] = local_uri
-            else :
+            else:
                 local_result[v] = result[v]
                 local_result[v]['local'] = result[v]['value']
-
 
         local_results.append(local_result)
 
     return local_results
 
 
-
-
-def document(resource_suffix = ""):
-    if resource_suffix :
+def document(resource_suffix=""):
+    if resource_suffix:
         uri = u"{}/{}".format(DEFAULT_BASE,resource_suffix)
     else :
         uri = START_URI
