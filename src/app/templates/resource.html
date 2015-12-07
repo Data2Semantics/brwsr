@@ -21,14 +21,15 @@
           </td>
           <td>
             <div>
-            {% for object in predicate.list %}
-              {% if object.o.type == 'uri' %}
-                <span class="graph" local="{{ object.g.local }}"></span>
-                <span class="resource" local="{{ object.o.local }}">{{ object.o.value }}</span>
+            {% for object in predicate.list|sort(attribute='o')|groupby(attribute='o') %}
+              {% for graph in object.list %}
+                <span class="graph" local="{{ graph.g.local }}"></span>
+              {% endfor %}
+              {% if object.grouper.type == 'uri' %}
+                <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
                 <br/>
               {% else  %}
-                <span class="graph" local="{{ object.g.local }}"></span>
-                <span class="literal" lang="{{ object.o.lang }}">{{ object.o.value }}</span>
+                <span class="literal" lang="{{ object.grouper.lang }}">{{ object.grouper.value }}</span>
                 <br/>
               {% endif %}
             {% endfor %}
@@ -53,13 +54,15 @@
         <tr>
           <td>
             <div>
-            {% for subject in predicate.list %}
-              {% if subject.s.type == 'uri' %}
-                <span class="graph" local="{{ subject.g.local }}"></span>
-                <span class="resource" local="{{ subject.s.local }}">{{ subject.s.value }}</span>
+            {% for subject in predicate.list|sort(attribute='s')|groupby(attribute='s') %}
+              {% for graph in subject.list %}
+                <span class="graph" local="{{ graph.g.local }}"></span>
+              {% endfor %}
+              {% if subject.grouper.type == 'uri' %}
+                <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
                 <br/>
               {% else  %}
-                <span class="literal">{{ subject.s.value }}</span><br/>
+                <span class="literal">{{ subject.grouper.value }}</span><br/>
               {% endif %}
             {% endfor %}
             </div>
@@ -86,27 +89,33 @@
         <tr>
           <td>
             <div>
-            {% for subject in subject.list %}
-              {% if subject.s.type == 'uri' %}
-                <span class="graph" local="{{ subject.g.local }}"></span>
-                <span class="resource" local="{{ subject.s.local }}">{{ subject.s.value }}</span>
+            {% for subject in subject.list|sort(attribute='s')|groupby(attribute='s') %}
+              {% for graph in subject.list %}
+                <span class="graph" local="{{ graph.g.local }}"></span>
+              {% endfor %}
+              {% if subject.grouper.type == 'uri' %}
+                <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
                 <br/>
               {% else  %}
-                <span class="literal">{{ subject.s.value }}</span><br/>
+                <span class="literal">{{ subject.grouper.value }}</span><br/>
               {% endif %}
             {% endfor %}
             </div>
           </td>
           <td>
             <div>
-            {% for subject in subject.list %}
-              {% if subject.o.type == 'uri' %}
-                <span class="graph" local="{{ subject.g.local }}"></span>
-                <span class="resource" local="{{ subject.o.local }}">{{ subject.o.value }}</span>
-                <br/>
-              {% else  %}
-                <span class="literal">{{ subject.o.value }}</span><br/>
-              {% endif %}
+            {% for subject in subject.list|sort(attribute='s')|groupby(attribute='s') %}
+              {% for object in subject.list|sort(attribute='o')|groupby(attribute='o') %}
+                {% for graph in object.list %}
+                  <span class="graph" local="{{ graph.g.local }}"></span>
+                {% endfor %}
+                {% if object.grouper.type == 'uri' %}
+                  <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
+                  <br/>
+                {% else  %}
+                  <span class="literal">{{ object.grouper.value }}</span><br/>
+                {% endif %}
+              {% endfor %}
             {% endfor %}
             </div>
           </td>
