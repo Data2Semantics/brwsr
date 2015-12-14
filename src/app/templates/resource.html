@@ -25,7 +25,7 @@
               {% for graph in object.list %}
                 <span class="graph" local="{{ graph.g.local }}"></span>
               {% endfor %}
-              {% if object.grouper.type == 'uri' %}
+              {% if object.grouper.type == 'uri' or object.grouper.type == 'bnode' %}
                 <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
                 <br/>
               {% else  %}
@@ -58,7 +58,7 @@
               {% for graph in subject.list %}
                 <span class="graph" local="{{ graph.g.local }}"></span>
               {% endfor %}
-              {% if subject.grouper.type == 'uri' %}
+              {% if subject.grouper.type == 'uri' or subject.grouper.type == 'bnode' %}
                 <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
                 <br/>
               {% else  %}
@@ -93,7 +93,7 @@
               {% for graph in subject.list %}
                 <span class="graph" local="{{ graph.g.local }}"></span>
               {% endfor %}
-              {% if subject.grouper.type == 'uri' %}
+              {% if subject.grouper.type == 'uri' or subject.grouper.type == 'bnode'  %}
                 <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
                 <br/>
               {% else  %}
@@ -109,7 +109,7 @@
                 {% for graph in object.list %}
                   <span class="graph" local="{{ graph.g.local }}"></span>
                 {% endfor %}
-                {% if object.grouper.type == 'uri' %}
+                {% if object.grouper.type == 'uri' or object.grouper.type == 'bnode'  %}
                   <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
                   <br/>
                 {% else  %}
