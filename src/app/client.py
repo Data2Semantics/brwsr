@@ -25,6 +25,7 @@ labels = {}
 def visit(url, format='html'):
     log.debug("Starting query")
 
+    sparql = None
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
         if url.startswith(DEFAULT_BASE + prefix):
             sparql = SPARQLWrapper(endpoint)
@@ -60,7 +61,7 @@ def visit(url, format='html'):
                 }} UNION {{
                     ?s <{url}> ?o.
                     BIND(<{url}> as ?p)
-                }}            
+                }}
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
