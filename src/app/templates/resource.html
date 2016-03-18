@@ -23,7 +23,9 @@
             <div>
             {% for object in predicate.list|sort(attribute='o')|groupby(attribute='o') %}
               {% for graph in object.list %}
-                <span class="graph" local="{{ graph.g.local }}"></span>
+                {% if graph.g.local != "<urn:default>" %}
+                  <span class="graph" local="{{ graph.g.local }}"></span>
+                {% endif %}
               {% endfor %}
               {% if object.grouper.type == 'uri' or object.grouper.type == 'bnode' %}
                 <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
@@ -56,7 +58,9 @@
             <div>
             {% for subject in predicate.list|sort(attribute='s')|groupby(attribute='s') %}
               {% for graph in subject.list %}
-                <span class="graph" local="{{ graph.g.local }}"></span>
+                {% if graph.g.local != "<urn:default>" %}
+                  <span class="graph" local="{{ graph.g.local }}"></span>
+                {% endif %}
               {% endfor %}
               {% if subject.grouper.type == 'uri' or subject.grouper.type == 'bnode' %}
                 <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
@@ -91,7 +95,9 @@
             <div>
             {% for subject in subject.list|sort(attribute='s')|groupby(attribute='s') %}
               {% for graph in subject.list %}
-                <span class="graph" local="{{ graph.g.local }}"></span>
+                {% if graph.g.local != "<urn:default>" %}
+                  <span class="graph" local="{{ graph.g.local }}"></span>
+                {% endif %}
               {% endfor %}
               {% if subject.grouper.type == 'uri' or subject.grouper.type == 'bnode'  %}
                 <span class="resource" local="{{ subject.grouper.local }}">{{ subject.grouper.value }}</span>
@@ -107,7 +113,9 @@
             {% for subject in subject.list|sort(attribute='s')|groupby(attribute='s') %}
               {% for object in subject.list|sort(attribute='o')|groupby(attribute='o') %}
                 {% for graph in object.list %}
-                  <span class="graph" local="{{ graph.g.local }}"></span>
+                  {% if graph.g.local != "<urn:default>" %}
+                    <span class="graph" local="{{ graph.g.local }}"></span>
+                  {% endif %}
                 {% endfor %}
                 {% if object.grouper.type == 'uri' or object.grouper.type == 'bnode'  %}
                   <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
