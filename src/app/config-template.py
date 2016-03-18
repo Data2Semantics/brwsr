@@ -4,6 +4,15 @@ from urlparse import urljoin
 # e.g. "http://dbpedia.org/sparql"
 SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
 
+# If brwsr is backed by multiple separate triple stores, use SPARQL_ENDPOINT_MAPPING to
+# make sure that each URI for which the LOCAL_NAME (i.e. the URI with the DEFAULT_BASE removed)
+# starts with a key of the SPARQL_ENDPOINT_MAPPING file, the proper SPARQL endpoint is used.
+# Example:
+# SPARQL_ENDPOINT_MAPPING = {
+#     "/example": "http://the.sparql.endpoint.for.uris.starting.with/example/sparql"
+# }
+SPARQL_ENDPOINT_MAPPING = {}
+
 # The DEFAULT_BASE is the prefix of the URI's in the triple store that can be browsed by brwsr
 # Requests to brwsr only include the local name (i.e. the the part after the third slash '/'),
 # the DEFAULT_BASE is *always* prepended to this local name to make up the URI that's used to
