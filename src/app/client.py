@@ -27,11 +27,13 @@ def visit(url, format='html'):
 
     sparql = None
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
-        if url.startswith(DEFAULT_BASE + prefix):
+        if url.startswith(DEFAULT_BASE + prefix + '/'):
             sparql = SPARQLWrapper(endpoint)
             break
     if not sparql:
         sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+
+    log.debug("Will be using {}".format(endpoint))
 
     for key, value in CUSTOM_PARAMETERS.items():
         sparql.addParameter(key, value)
@@ -71,7 +73,7 @@ def visit(url, format='html'):
 
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
+        log.debug(results)
     else:
         q = u"DESCRIBE <{}>".format(url)
         sparql.setQuery(q)
