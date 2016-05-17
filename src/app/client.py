@@ -32,8 +32,7 @@ def visit(url, format='html'):
             break
     if not sparql:
         sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-
-    log.debug("Will be using {}".format(endpoint))
+        log.debug("Will be using {}".format(SPARQL_ENDPOINT))
 
     for key, value in CUSTOM_PARAMETERS.items():
         sparql.addParameter(key, value)
