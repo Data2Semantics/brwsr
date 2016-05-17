@@ -126,7 +126,7 @@ def browse():
 
 @app.route('/<path:resource_suffix>')
 def redirect(resource_suffix):
-
+    log.debug("Retrieved resource_suffix " + resource_suffix)
     if resource_suffix.startswith('{}/'.format(LOCAL_DOCUMENT_INFIX)):
         log.debug("DOC Retrieved resource_suffix " + resource_suffix)
         return document(resource_suffix[(len(LOCAL_DOCUMENT_INFIX)+1):])
