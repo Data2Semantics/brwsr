@@ -10,15 +10,14 @@ rdfextras.registerplugins()
 log = app.logger
 log.setLevel(logging.DEBUG)
 
+SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
+
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
+
+DEFAULT_BASE = config.DEFAULT_BASE
+
 QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
 CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
-
-sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-
-for key, value in CUSTOM_PARAMETERS.items():
-    sparql.addParameter(key, value)
-
 
 labels = {}
 
@@ -26,10 +25,34 @@ labels = {}
 def visit(url, format='html'):
     log.debug("Starting query")
 
+    sparql = None
+    for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
+        if url.startswith(DEFAULT_BASE + prefix + '/'):
+            sparql = SPARQLWrapper(endpoint)
+            break
+    if not sparql:
+        sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+        log.debug("Will be using {}".format(SPARQL_ENDPOINT))
+
+    for key, value in CUSTOM_PARAMETERS.items():
+        sparql.addParameter(key, value)
 
     if format == 'html':
         q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
+            {{
             GRAPH ?g {{
+                {{
+                    <{url}> ?p ?o .
+                    BIND(<{url}> as ?s)
+                }} UNION {{
+                    ?s ?p <{url}>.
+                    BIND(<{url}> as ?o)
+                }} UNION {{
+                    ?s <{url}> ?o.
+                    BIND(<{url}> as ?p)
+                }}
+            }}
+            }} UNION {{
                 {{
                     <{url}> ?p ?o .
                     BIND(<{url}> as ?s)
@@ -49,7 +72,7 @@ def visit(url, format='html'):
 
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
+        log.debug(results)
     else:
         q = u"DESCRIBE <{}>".format(url)
         sparql.setQuery(q)

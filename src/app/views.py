@@ -23,11 +23,16 @@ BROWSE_EXTERNAL_URIS = config.BROWSE_EXTERNAL_URIS
 def localize_results(results):
     log.debug("Localizing results")
     local_results = []
-
     for result in results:
         local_result = {}
         for v in ['s', 'p', 'o', 'g']:
-            if result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
+            if v not in result:
+                local_uri = "<urn:default>"
+                local_result[v] = {}
+                local_result[v]['type'] = 'uri'
+                local_result[v]['value'] = local_uri
+                local_result[v]['local'] = local_uri
+            elif result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
                 local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
                 local_result[v] = result[v]
                 local_result[v]['local'] = local_uri
