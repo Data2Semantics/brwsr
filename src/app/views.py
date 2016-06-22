@@ -6,12 +6,15 @@ from urlparse import urljoin, urlsplit
 from client import visit
 import config
 import traceback
+from rdflib import URIRef, Literal, BNode
+
 from app import app
 
 
 log = app.logger
 log.setLevel(logging.DEBUG)
 
+LOCAL_STORE = config.LOCAL_STORE
 DEFAULT_BASE = config.DEFAULT_BASE
 LOCAL_DOCUMENT_INFIX = config.LOCAL_DOCUMENT_INFIX
 LOCAL_SERVER_NAME = config.LOCAL_SERVER_NAME
@@ -20,39 +23,75 @@ START_URI = config.START_URI
 BROWSE_EXTERNAL_URIS = config.BROWSE_EXTERNAL_URIS
 
 
+def localize_rdflib_result(resource):
+    resource_result = {}
+
+    resource_string = unicode(resource)
+
+    resource_result['value'] = resource_string
+    if isinstance(resource, URIRef) or isinstance(resource, BNode):
+        resource_result['type'] = 'uri'
+
+        if resource_string.startswith(DEFAULT_BASE) and '#' not in resource_string:
+            resource_result['local'] = resource_string.replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
+        elif BROWSE_EXTERNAL_URIS or '#' in resource_string:
+            resource_result['local'] = url_for('browse', uri=resource_string, _external=True)
+        else:
+            resource_result['local'] = resource_string
+    elif isinstance(resource, Literal):
+        resource_result['type'] = 'literal'
+
+    return resource_result
+
+
 def localize_results(results):
     log.debug("Localizing results")
+    log.debug(results)
     local_results = []
-    for result in results:
-        local_result = {}
-        for v in ['s', 'p', 'o', 'g']:
-            if v not in result:
-                local_uri = "<urn:default>"
-                local_result[v] = {}
-                local_result[v]['type'] = 'uri'
-                local_result[v]['value'] = local_uri
-                local_result[v]['local'] = local_uri
-            elif result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) :
-                local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
-                local_result[v] = result[v]
-                local_result[v]['local'] = local_uri
-            elif BROWSE_EXTERNAL_URIS:
-                local_uri = url_for('browse', uri=result[v]['value'], _external=True)
-                local_result[v] = result[v]
-                local_result[v]['local'] = local_uri
-            else:
-                local_result[v] = result[v]
-                local_result[v]['local'] = result[v]['value']
 
-        local_results.append(local_result)
+    if LOCAL_STORE:
+        log.debug("Transforming RDFLib results")
 
+        for (s, p, o, graph) in results:
+            local_result = {}
+            local_result['s'] = localize_rdflib_result(s)
+            local_result['p'] = localize_rdflib_result(p)
+            local_result['o'] = localize_rdflib_result(o)
+            local_result['g'] = localize_rdflib_result(graph)
+            local_results.append(local_result)
+    else:
+        for result in results:
+            log.debug(result)
+            local_result = {}
+            for v in ['s', 'p', 'o', 'g']:
+                if v not in result:
+                    local_uri = "<urn:default>"
+                    local_result[v] = {}
+                    local_result[v]['type'] = 'uri'
+                    local_result[v]['value'] = local_uri
+                    local_result[v]['local'] = local_uri
+                elif result[v]['type'] == 'uri' and result[v]['value'].startswith(DEFAULT_BASE) and '#' not in result[v]['value']:
+                    local_uri = result[v]['value'].replace(DEFAULT_BASE, LOCAL_SERVER_NAME)
+                    local_result[v] = result[v]
+                    local_result[v]['local'] = local_uri
+                elif BROWSE_EXTERNAL_URIS or '#' in result[v]['value']:
+                    local_uri = url_for('browse', uri=result[v]['value'], _external=True)
+                    local_result[v] = result[v]
+                    local_result[v]['local'] = local_uri
+                else:
+                    local_result[v] = result[v]
+                    local_result[v]['local'] = result[v]['value']
+
+            local_results.append(local_result)
+
+    log.debug(local_results)
     return local_results
 
 
 def document(resource_suffix=""):
     if resource_suffix:
-        uri = u"{}/{}".format(DEFAULT_BASE,resource_suffix)
-    else :
+        uri = u"{}/{}".format(DEFAULT_BASE, resource_suffix)
+    else:
         uri = START_URI
 
     log.debug('The URI we will use is: ' + uri)
@@ -66,7 +105,7 @@ def document(resource_suffix=""):
     try:
         if mimetype in ['text/html','application/xhtml_xml','*/*']:
             local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
-            results = visit(uri,format='html')["results"]["bindings"]
+            results = visit(uri,format='html')
             local_results = localize_results(results)
 
             return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
@@ -103,7 +142,7 @@ def browse():
 
         try:
             if mimetype in ['text/html','application/xhtml_xml','*/*']:
-                results = visit(uri,format='html')["results"]["bindings"]
+                results = visit(uri,format='html')
                 local_results = localize_results(results)
                 return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results)
             elif mimetype in ['application/json']:
@@ -130,7 +169,7 @@ def redirect(resource_suffix):
     if resource_suffix.startswith('{}/'.format(LOCAL_DOCUMENT_INFIX)):
         log.debug("DOC Retrieved resource_suffix " + resource_suffix)
         return document(resource_suffix[(len(LOCAL_DOCUMENT_INFIX)+1):])
-    else :
+    else:
         log.debug("ID Retrieved resource_suffix " + resource_suffix)
         if resource_suffix.startswith('http'):
             abort(500)
