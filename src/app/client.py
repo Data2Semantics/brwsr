@@ -6,9 +6,11 @@ import config
 from app import app
 import rdfextras
 import traceback
+import glob
 rdfextras.registerplugins()
 from rdflib import Dataset
 import rdflib.util
+from threading import Thread
 
 log = app.logger
 log.setLevel(logging.DEBUG)
@@ -29,14 +31,24 @@ labels = {}
 
 g = Dataset()
 
+
+def load_file(filename):
+    log.info("Loading {}...".format(filename))
+    format = rdflib.util.guess_format(filename)
+    g.load(filename, format=format)
+    log.info("... done loading {}".format(filename))
+
 if LOCAL_STORE:
-    log.info("Loading local file: {}".format(LOCAL_FILE))
+    log.info("Loading local file(s): {}".format(LOCAL_FILE))
     try:
-        format = rdflib.util.guess_format(LOCAL_FILE)
-        g.load(LOCAL_FILE, format=format)
+        for filename in glob.glob(LOCAL_FILE):
+            t = Thread(target=load_file, args=(filename,))
+            t.start()
     except:
         log.error(traceback.format_exc())
         raise Exception("Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
+
+
 
 
 def visit(url, format='html'):

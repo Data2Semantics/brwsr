@@ -6,6 +6,7 @@ LOCAL_STORE = False
 
 # Set LOCAL_FILE to the relative or absolute path of the file you want brwsr to load when
 # LOCAL_STORE is True. The brwsr application will just use RDFLib to guess the file format based on the extension.
+# You can use UNIX file masks such as * and ? to load multiple files
 LOCAL_FILE = 'justsomeexample.trig'
 
 # Set this to the SPARQL endpoint uri of your triplestore
