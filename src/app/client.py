@@ -177,3 +177,6 @@ def visit_local(url, format='html'):
     log.debug("Received results")
 
     return results
+
+def query(query):
+    return g.query(query)

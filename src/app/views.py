@@ -3,7 +3,7 @@ from werkzeug.http import parse_accept_header
 from urllib import urlencode
 import logging
 from urlparse import urljoin, urlsplit
-from client import visit
+from client import visit, query
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -186,7 +186,21 @@ def redirect(resource_suffix):
 
 @app.route('/sparql')
 def sparql():
-    return render_template('sparql.html',endpoint=config.SPARQL_ENDPOINT)
+    if config.LOCAL_STORE:
+        return render_template('sparql.html', endpoint=url_for('local_sparql'))
+    else:
+        return render_template('sparql.html', endpoint=config.SPARQL_ENDPOINT)
+
+@app.route('/local/sparql', methods=['POST'])
+def local_sparql():
+    if config.LOCAL_STORE:
+        log.debug("Querying local store")
+        q = request.form['query']
+        log.debug(q)
+        return query(q).serialize(format='json')
+    else:
+        log.warning("No local store configured")
+
 
 @app.route('/')
 def index():
