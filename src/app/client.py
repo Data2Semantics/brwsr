@@ -178,5 +178,6 @@ def visit_local(url, format='html'):
 
     return results
 
+
 def query(query):
     return g.query(query)
