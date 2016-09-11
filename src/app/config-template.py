@@ -1,5 +1,14 @@
 from urlparse import urljoin
 
+# Set LOCAL_STORE to True if you want brwsr to just load a (smallish) RDF file into server memory
+# rather than operate on an external SPARQL store
+LOCAL_STORE = False
+
+# Set LOCAL_FILE to the relative or absolute path of the file you want brwsr to load when
+# LOCAL_STORE is True. The brwsr application will just use RDFLib to guess the file format based on the extension.
+# You can use UNIX file masks such as * and ? to load multiple files
+LOCAL_FILE = 'justsomeexample.trig'
+
 # Set this to the SPARQL endpoint uri of your triplestore
 # e.g. "http://dbpedia.org/sparql"
 SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
