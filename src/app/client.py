@@ -163,7 +163,38 @@ def visit_local(url, format='html'):
 
         results = g.query(q)
     else:
-        q = u"DESCRIBE <{}>".format(url)
+        # q = u"DESCRIBE <{}>".format(url)
+
+        q = u"""
+        CONSTRUCT {{
+            ?s ?p ?o .
+        }} WHERE {{
+            {{
+            GRAPH ?g {{
+                {{
+                    <{url}> ?p ?o .
+                    BIND(<{url}> as ?s)
+                }} UNION {{
+                    ?s ?p <{url}>.
+                    BIND(<{url}> as ?o)
+                }} UNION {{
+                    ?s <{url}> ?o.
+                    BIND(<{url}> as ?p)
+                }}
+            }}
+            }} UNION {{
+                {{
+                    <{url}> ?p ?o .
+                    BIND(<{url}> as ?s)
+                }} UNION {{
+                    ?s ?p <{url}>.
+                    BIND(<{url}> as ?o)
+                }} UNION {{
+                    ?s <{url}> ?o.
+                    BIND(<{url}> as ?p)
+                }}
+            }}
+        }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
         if format == 'jsonld':
             results = g.query(q).serialize(format='json-ld')
