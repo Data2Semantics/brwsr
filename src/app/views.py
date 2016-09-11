@@ -98,14 +98,15 @@ def document(resource_suffix=""):
 
     if 'Accept' in request.headers:
         mimetype = parse_accept_header(request.headers['Accept']).best
-    else :
+        log.debug("Looking for mime type '{}'".format(mimetype))
+    else:
         log.debug("No accept header, using 'text/html'")
         mimetype = 'text/html'
 
     try:
-        if mimetype in ['text/html','application/xhtml_xml','*/*']:
+        if mimetype in ['text/html', 'application/xhtml_xml','*/*']:
             local_resource_uri = u"{}/{}".format(LOCAL_SERVER_NAME,resource_suffix)
-            results = visit(uri,format='html')
+            results = visit(uri, format='html')
             local_results = localize_results(results)
 
             return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
@@ -117,14 +118,14 @@ def document(resource_suffix=""):
             response = make_response(visit(uri,format='rdfxml'),200)
             response.headers['Content-Type'] = 'application/rdf+xml'
             return response
-        elif mimetype in ['application/x-turtle']:
+        elif mimetype in ['application/x-turtle','text/turtle']:
             response = make_response(visit(uri,format='turtle'),200)
-            response.headers['Content-Type'] = 'application/x-turtle'
+            response.headers['Content-Type'] = 'text/turtle'
             return response
     except Exception as e:
         log.error(e)
         log.error(traceback.format_exc())
-        return traceback.format_exc()
+        return make_response("Incorrect mimetype or other error", 400)
 
 
 @app.route('/browse')
@@ -133,29 +134,29 @@ def browse():
 
     if uri is None:
         return document()
-    else :
+    else:
         if 'Accept' in request.headers:
             mimetype = parse_accept_header(request.headers['Accept']).best
-        else :
+        else:
             log.debug("No accept header, using 'text/html'")
             mimetype = 'text/html'
 
         try:
-            if mimetype in ['text/html','application/xhtml_xml','*/*']:
-                results = visit(uri,format='html')
+            if mimetype in ['text/html', 'application/xhtml_xml', '*/*']:
+                results = visit(uri, format='html')
                 local_results = localize_results(results)
                 return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results)
             elif mimetype in ['application/json']:
-                response = make_response(visit(uri,format='jsonld'),200)
+                response = make_response(visit(uri, format='jsonld'), 200)
                 response.headers['Content-Type'] = 'application/json'
                 return response
-            elif mimetype in ['application/rdf+xml','application/xml']:
-                response = make_response(visit(uri,format='rdfxml'),200)
+            elif mimetype in ['application/rdf+xml', 'application/xml']:
+                response = make_response(visit(uri, format='rdfxml'), 200)
                 response.headers['Content-Type'] = 'application/rdf+xml'
                 return response
-            elif mimetype in ['application/x-turtle']:
-                response = make_response(visit(uri,format='turtle'),200)
-                response.headers['Content-Type'] = 'application/x-turtle'
+            elif mimetype in ['application/x-turtle', 'text/turtle']:
+                response = make_response(visit(uri, format='turtle'), 200)
+                response.headers['Content-Type'] = 'text/turtle'
                 return response
         except Exception as e:
             log.error(e)
