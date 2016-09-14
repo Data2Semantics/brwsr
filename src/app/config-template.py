@@ -84,6 +84,12 @@ DEBUG = False
 # Browse URIs that do not match the DEFAULT_BASE
 BROWSE_EXTERNAL_URIS = True
 
+# Dereference external URIs (i.e. retrieve RDF served at that location, and display the resource)
+# NB: This may be slow, depending on the responsiveness of the server at hand
+# NB: The resulting RDF is stored locally (in memory) which means that this is a potential memory hog for
+# servers that are visited frequently. TODO: store results in a triple store
+DEREFERENCE_EXTERNAL_URIS = True
+
 # Set any custom parameters to be sent to the SPARQL endpoint
 # e.g. CUSTOM_PARAMETERS = {'reasoning': 'true'} for Stardog
 CUSTOM_PARAMETERS = {'reasoning': 'true'}

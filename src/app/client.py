@@ -26,6 +26,7 @@ DEFAULT_BASE = config.DEFAULT_BASE
 
 QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
 CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
+DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
 labels = {}
 
@@ -52,8 +53,13 @@ def init():
 
 
 
-def visit(url, format='html'):
+def visit(url, format='html', external=False):
     log.debug("Starting query")
+
+    # If this uri is not in our namespace, and DEREFERENCE_EXTERNAL_URIS is true
+    # We go out, and add the retrieved RDF to our local store
+    if external and DEREFERENCE_EXTERNAL_URIS:
+        dereference(url)
 
     if LOCAL_STORE:
         return visit_local(url, format=format)
@@ -108,7 +114,11 @@ def visit_sparql(url, format='html'):
 
         sparql.setQuery(q)
 
-        results = sparql.query().convert()["results"]["bindings"]
+        sparql_results = sparql.query().convert()["results"]["bindings"]
+
+        local_results = visit_local(url, format)
+
+        results = sparql_results + local_results
     else:
         q = u"""
         CONSTRUCT {{
@@ -240,6 +250,33 @@ def visit_local(url, format='html'):
 
     return results
 
+
+def dereference(uri):
+    headers = {'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
+    response = requests.get(uri, headers=headers)
+
+    if response.status_code == 200:
+        content_type = response.headers['content-type']
+
+        if 'turtle' in content_type:
+            f = 'turtle'
+        elif 'rdf' in content_type:
+            f = 'xml'
+        elif 'n3' in content_type:
+            f = 'n3'
+        elif 'n-quads' in content_type:
+            f = 'nquads'
+        elif 'trig' in content_type:
+            f = 'trig'
+        elif 'json' in content_type:
+            f = 'jsonld'
+        else:
+            print "Format not recognised"
+
+        # Parse the response into our local store Dataset
+        g.parse(data=response.text, format=f)
+    else:
+        log.warning("URI did not return any recognisable result")
 
 def query(query):
     return g.query(query)

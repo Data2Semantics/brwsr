@@ -3,7 +3,7 @@ from werkzeug.http import parse_accept_header
 from urllib import urlencode
 import logging
 from urlparse import urljoin, urlsplit
-from client import visit, query, init
+from client import visit, query, init, dereference
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -21,6 +21,7 @@ LOCAL_SERVER_NAME = config.LOCAL_SERVER_NAME
 START_LOCAL_NAME = config.START_LOCAL_NAME
 START_URI = config.START_URI
 BROWSE_EXTERNAL_URIS = config.BROWSE_EXTERNAL_URIS
+DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
 
 def localize_rdflib_result(resource):
@@ -143,19 +144,19 @@ def browse():
 
         try:
             if mimetype in ['text/html', 'application/xhtml_xml', '*/*']:
-                results = visit(uri, format='html')
+                results = visit(uri, format='html', external=True)
                 local_results = localize_results(results)
                 return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results, local=LOCAL_STORE)
             elif mimetype in ['application/json']:
-                response = make_response(visit(uri, format='jsonld'), 200)
+                response = make_response(visit(uri, format='jsonld', external=True), 200)
                 response.headers['Content-Type'] = 'application/json'
                 return response
             elif mimetype in ['application/rdf+xml', 'application/xml']:
-                response = make_response(visit(uri, format='rdfxml'), 200)
+                response = make_response(visit(uri, format='rdfxml', external=True), 200)
                 response.headers['Content-Type'] = 'application/rdf+xml'
                 return response
             elif mimetype in ['application/x-turtle', 'text/turtle']:
-                response = make_response(visit(uri, format='turtle'), 200)
+                response = make_response(visit(uri, format='turtle', external=True), 200)
                 response.headers['Content-Type'] = 'text/turtle'
                 return response
         except Exception as e:
