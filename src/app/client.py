@@ -3,7 +3,6 @@ import json
 import logging
 import requests
 import config
-from app import app
 import rdfextras
 import traceback
 import glob
@@ -12,7 +11,8 @@ from rdflib import Dataset
 import rdflib.util
 from threading import Thread
 
-log = app.logger
+# from app import app
+log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 LOCAL_STORE = config.LOCAL_STORE
@@ -38,15 +38,16 @@ def load_file(filename):
     g.load(filename, format=format)
     log.info("... done loading {}".format(filename))
 
-if LOCAL_STORE:
-    log.info("Loading local file(s): {}".format(LOCAL_FILE))
-    try:
-        for filename in glob.glob(LOCAL_FILE):
-            t = Thread(target=load_file, args=(filename,))
-            t.start()
-    except:
-        log.error(traceback.format_exc())
-        raise Exception("Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
+def init():
+    if LOCAL_STORE:
+        log.info("Loading local file(s): {}".format(LOCAL_FILE))
+        try:
+            for filename in glob.glob(LOCAL_FILE):
+                t = Thread(target=load_file, args=(filename,))
+                t.start()
+        except:
+            log.error(traceback.format_exc())
+            raise Exception("Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
 
 
 
@@ -139,7 +140,7 @@ def visit_sparql(url, format='html'):
                 }}
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
-        
+
         sparql.setQuery(q)
 
         if format == 'jsonld':

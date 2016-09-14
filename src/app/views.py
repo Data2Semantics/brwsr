@@ -3,7 +3,7 @@ from werkzeug.http import parse_accept_header
 from urllib import urlencode
 import logging
 from urlparse import urljoin, urlsplit
-from client import visit, query
+from client import visit, query, init
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -109,7 +109,7 @@ def document(resource_suffix=""):
             results = visit(uri, format='html')
             local_results = localize_results(results)
 
-            return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results)
+            return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results, local=LOCAL_STORE)
         elif mimetype in ['application/json']:
             response = make_response(visit(uri,format='jsonld'),200)
             response.headers['Content-Type'] = 'application/json'
@@ -130,7 +130,7 @@ def document(resource_suffix=""):
 
 @app.route('/browse')
 def browse():
-    uri = request.args.get('uri')
+    uri = request.args.get('uri', None)
 
     if uri is None:
         return document()
@@ -145,7 +145,7 @@ def browse():
             if mimetype in ['text/html', 'application/xhtml_xml', '*/*']:
                 results = visit(uri, format='html')
                 local_results = localize_results(results)
-                return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results)
+                return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results, local=LOCAL_STORE)
             elif mimetype in ['application/json']:
                 response = make_response(visit(uri, format='jsonld'), 200)
                 response.headers['Content-Type'] = 'application/json'
@@ -217,3 +217,12 @@ def index():
         return response
     else:
         return document()
+
+
+@app.route('/reload')
+def reload():
+    # Refresh the local store by reloading the files
+    init()
+
+    # Browse the uri passed in the GET request (if none, just show the START_URI)
+    return browse()
