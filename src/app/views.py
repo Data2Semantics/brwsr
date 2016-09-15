@@ -47,7 +47,6 @@ def localize_rdflib_result(resource):
 
 def localize_results(results):
     log.debug("Localizing results")
-    log.debug(results)
     local_results = []
 
     if LOCAL_STORE:
@@ -62,7 +61,6 @@ def localize_results(results):
             local_results.append(local_result)
     else:
         for result in results:
-            log.debug(result)
             local_result = {}
             for v in ['s', 'p', 'o', 'g']:
                 if v not in result:
@@ -85,7 +83,6 @@ def localize_results(results):
 
             local_results.append(local_result)
 
-    log.debug(local_results)
     return local_results
 
 

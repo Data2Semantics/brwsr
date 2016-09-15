@@ -7,7 +7,7 @@ import rdfextras
 import traceback
 import glob
 rdfextras.registerplugins()
-from rdflib import Dataset
+from rdflib import Dataset, URIRef
 import rdflib.util
 from threading import Thread
 
@@ -110,8 +110,6 @@ def visit_sparql(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
-        log.debug(q)
-
         sparql.setQuery(q)
 
         sparql_results = sparql.query().convert()["results"]["bindings"]
@@ -200,8 +198,6 @@ def visit_local(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
-        log.debug(q)
-
         results = g.query(q)
     else:
         # q = u"DESCRIBE <{}>".format(url)
@@ -252,31 +248,39 @@ def visit_local(url, format='html'):
 
 
 def dereference(uri):
-    headers = {'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
-    response = requests.get(uri, headers=headers)
+    uriref = URIRef(uri)
 
-    if response.status_code == 200:
-        content_type = response.headers['content-type']
+    if uriref not in g.graphs():
+        resource_graph = g.graph(uriref)
 
-        if 'turtle' in content_type:
-            f = 'turtle'
-        elif 'rdf' in content_type:
-            f = 'xml'
-        elif 'n3' in content_type:
-            f = 'n3'
-        elif 'n-quads' in content_type:
-            f = 'nquads'
-        elif 'trig' in content_type:
-            f = 'trig'
-        elif 'json' in content_type:
-            f = 'jsonld'
+        headers = {'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
+        response = requests.get(uri, headers=headers)
+
+        if response.status_code == 200:
+            content_type = response.headers['content-type']
+
+            if 'turtle' in content_type:
+                f = 'turtle'
+            elif 'rdf' in content_type:
+                f = 'xml'
+            elif 'n3' in content_type:
+                f = 'n3'
+            elif 'n-quads' in content_type:
+                f = 'nquads'
+            elif 'trig' in content_type:
+                f = 'trig'
+            elif 'json' in content_type:
+                f = 'jsonld'
+            else:
+                f = None
+                print "Format not recognised"
+
+            if f is not None:
+                # Parse the response into the graph with the given URI in our local store Dataset
+                resource_graph.parse(data=response.text, format=f)
         else:
-            print "Format not recognised"
+            log.warning("URI did not return any recognisable result")
 
-        # Parse the response into our local store Dataset
-        g.parse(data=response.text, format=f)
-    else:
-        log.warning("URI did not return any recognisable result")
 
 def query(query):
     return g.query(query)
