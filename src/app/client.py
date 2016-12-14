@@ -112,9 +112,11 @@ def visit_sparql(url, format='html'):
 
         sparql.setQuery(q)
 
-        sparql_results = sparql.query().convert()["results"]["bindings"]
+        log.debug(q)
 
-        local_results = visit_local(url, format)
+        sparql_results = list(sparql.query().convert()["results"]["bindings"])
+
+        local_results = list(visit_local(url, format))
 
         results = sparql_results + local_results
     else:
