@@ -51,6 +51,24 @@ def init():
             raise Exception("Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
 
 
+def get_predicates(sparql, url):
+    predicate_query = """
+        SELECT DISTINCT ?p WHERE {{
+            {{ <{url}> ?p [] . }}
+            UNION
+            {{ [] ?p <{url}> . }}
+        }}
+    """.format(url=url)
+
+    sparql.setQuery(predicate_query)
+
+    sparql_results = list(sparql.query().convert()["results"]["bindings"])
+
+    predicates = [r['p']['value'] for r in sparql_results]
+
+    log.debug(predicates)
+
+    return predicates
 
 
 def visit(url, format='html', external=False):
@@ -67,7 +85,11 @@ def visit(url, format='html', external=False):
         return visit_sparql(url, format=format)
 
 
-def visit_sparql(url, format='html'):
+
+
+# At this point, results for each URL are now neatly stored in order in 'results'
+
+def get_sparql_endpoint():
     sparql = None
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
         if url.startswith(DEFAULT_BASE + prefix + '/'):
@@ -81,44 +103,115 @@ def visit_sparql(url, format='html'):
     for key, value in CUSTOM_PARAMETERS.items():
         sparql.addParameter(key, value)
 
+    return sparql
+
+
+def visit_sparql(url, format='html'):
+    sparql = get_sparql_endpoint()
+    predicates = get_predicates(sparql, url)
+
     if format == 'html':
-        q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
+        # q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
+        #     {{
+        #     GRAPH ?g {{
+        #         {{
+        #             <{url}> ?p ?o .
+        #             BIND(<{url}> as ?s)
+        #         }} UNION {{
+        #             ?s ?p <{url}>.
+        #             BIND(<{url}> as ?o)
+        #         }} UNION {{
+        #             ?s <{url}> ?o.
+        #             BIND(<{url}> as ?p)
+        #         }}
+        #     }}
+        #     }} UNION {{
+        #         {{
+        #             <{url}> ?p ?o .
+        #             BIND(<{url}> as ?s)
+        #         }} UNION {{
+        #             ?s ?p <{url}>.
+        #             BIND(<{url}> as ?o)
+        #         }} UNION {{
+        #             ?s <{url}> ?o.
+        #             BIND(<{url}> as ?p)
+        #         }}
+        #     }}
+        # }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
+
+        limit_fraction = QUERY_RESULTS_LIMIT/3
+        if len(predicates) > 1:
+            predicate_query_limit_fraction = (limit_fraction*2)/len(predicates)
+        else:
+            predicate_query_limit_fraction = limit_fraction*2
+
+        results = []
+
+        def predicate_specific_sparql(query):
+            sparql_endpoint = get_sparql_endpoint()
+            log.debug(query)
+            sparql_endpoint.setQuery(query)
+            results.extend(list(sparql_endpoint.query().convert()["results"]["bindings"]))
+
+
+        threads = []
+        queries = []
+        local_results = []
+        for p in predicates:
+            q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
+                {{
+                GRAPH ?g {{
+                    {{
+                        <{url}> <{predicate}> ?o .
+                        BIND(<{url}> as ?s)
+                        BIND(<{predicate}> as ?p)
+                    }} UNION {{
+                        ?s <{predicate}> <{url}>.
+                        BIND(<{url}> as ?o)
+                        BIND(<{predicate}> as ?p)
+                    }}
+                }}
+                }} UNION {{
+                    {{
+                        <{url}> <{predicate}> ?o .
+                        BIND(<{url}> as ?s)
+                        BIND(<{predicate}> as ?p)
+                    }} UNION {{
+                        ?s <{predicate}> <{url}>.
+                        BIND(<{url}> as ?o)
+                        BIND(<{predicate}> as ?p)
+                    }}
+                }}
+            }} LIMIT {limit}""".format(url=url, predicate=p, limit=predicate_query_limit_fraction)
+
+            process = Thread(target=predicate_specific_sparql, args=[q])
+            process.start()
+            threads.append(process)
+
+        url_is_predicate_query = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
             {{
             GRAPH ?g {{
-                {{
-                    <{url}> ?p ?o .
-                    BIND(<{url}> as ?s)
-                }} UNION {{
-                    ?s ?p <{url}>.
-                    BIND(<{url}> as ?o)
-                }} UNION {{
-                    ?s <{url}> ?o.
-                    BIND(<{url}> as ?p)
-                }}
+                ?s <{url}> ?o.
+                BIND(<{url}> as ?p)
             }}
             }} UNION {{
-                {{
-                    <{url}> ?p ?o .
-                    BIND(<{url}> as ?s)
-                }} UNION {{
-                    ?s ?p <{url}>.
-                    BIND(<{url}> as ?o)
-                }} UNION {{
-                    ?s <{url}> ?o.
-                    BIND(<{url}> as ?p)
-                }}
+                ?s <{url}> ?o.
+                BIND(<{url}> as ?p)
             }}
-        }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
+        }} LIMIT {limit}""".format(url=url, limit=limit_fraction)
 
-        sparql.setQuery(q)
+        process = Thread(target=predicate_specific_sparql, args=[url_is_predicate_query])
+        process.start()
+        threads.append(process)
 
-        log.debug(q)
-
-        sparql_results = list(sparql.query().convert()["results"]["bindings"])
+        # We now pause execution on the main thread by 'joining' all of our started threads.
+        # This ensures that each has finished processing the urls.
+        for process in threads:
+            process.join()
 
         local_results = list(visit_local(url, format))
+        results.extend(local_results)
 
-        results = sparql_results + local_results
     else:
         q = u"""
         CONSTRUCT {{
