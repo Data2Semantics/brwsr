@@ -126,6 +126,11 @@ def document(resource_suffix=""):
         return make_response("Incorrect mimetype or other error", 400)
 
 
+@app.route('/favicon.ico')
+def icon():
+    return jsonify({'error': "no icon"})
+
+
 @app.route('/browse')
 def browse():
     uri = request.args.get('uri', None)
