@@ -135,8 +135,9 @@ def icon():
 def graph():
     uri = request.args.get('uri', None)
 
-    graph = prepare_graph(uri)
-
+    results = visit(uri, format='html')
+    local_results = localize_results(results)
+    graph = prepare_graph(local_results)
     return render_template('graph.html', graph=graph)
 
 @app.route('/browse')
@@ -209,7 +210,9 @@ def local_sparql():
         log.debug("Querying local store")
         q = request.form['query']
         log.debug(q)
-        return query(q).serialize(format='json')
+        results =  query(q).serialize(format='json')
+        log.debug(results)
+        return results
     else:
         log.warning("No local store configured")
 

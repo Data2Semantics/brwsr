@@ -1,23 +1,88 @@
 {% extends "base.html" %}
 
 {% block brwsr_content %}
+<style>
+<style>
+        .node {
+          stroke: #fff;
+          stroke-width: 1.5px;
+        }
+
+        .link {
+          stroke: #999;
+          stroke-opacity: .6;
+        }
+
+        text {
+          font: 1px sans-serif;
+        }
+
+        .node:not(:hover) .label {
+          display: none;
+        }
+
+        .criterion {
+            font: 3px "Yanone Kaffeesatz", sans-serif;
+
+        }
+
+        .trial {
+          font: 8px "Yanone Kaffeesatz", sans-serif;
+        }
+
+        .concept, .origin {
+          font: 15px "Yanone Kaffeesatz", sans-serif;
+        }
+
+        .trial_cg, .criterion_cg {
+            font: 12px "Yanone Kaffeesatz", sans-serif;
+        }
 
 
-<script>
-  var results = {{ results|tojson }};
+        .graph {
+            overflow: scroll;
+        }
 
-  var edges = [];
-  var nodes = [];
-  for(i in results){
-    edges.push({'source': results[i]['s']['value'], 'target': results[i]['o']['value']});
+        #circle circle {
+            fill: none;
+            pointer-events: all;
+          }
 
-  }
+          .group path {
+            fill-opacity: .5;
+          }
 
-</script>
+          path.chord {
+            stroke: #000;
+            stroke-width: .25px;
+          }
+
+          #circle:hover path.fade {
+            display: none;
+          }
+
+          .chord-label {
+            font: 8px "Open Sans", sans-serif;
+          }
+</style>
 
 <div class="row">
   <div class="col-md-12">
+    <div id="graph">
+    </div>
   </div>
 </div>
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script type="application/x-javascript" src="{{ url_for('.static',filename='js/chord.js') }}"></script>
+
+<script>
+  var graph = {{ graph|tojson }};
+
+  drawChord('http:/blbla', graph[0], graph[1], '#graph');
+  console.log(graph);
+</script>
+
+
 
 {% endblock %}
