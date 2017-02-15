@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block brwsr_content %}
+
+
+<script>
+  var results = {{ results|tojson }};
+
+  var edges = [];
+  var nodes = [];
+  for(i in results){
+    edges.push({'source': results[i]['s']['value'], 'target': results[i]['o']['value']});
+
+  }
+
+</script>
+
+<div class="row">
+  <div class="col-md-12">
+  </div>
+</div>
+
+{% endblock %}

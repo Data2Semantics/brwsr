@@ -379,3 +379,98 @@ def dereference(uri):
 
 def query(query):
     return g.query(query)
+
+
+def prepare_graph(concept_uri):
+
+    query = """SELECT ?c1 ?c2 WHERE {
+        {
+            <{{concept_uri}}> ?p1 ?c1 .
+        } UNION {
+            ?c1 ?p2 ?c2 .
+        }
+        FILTER (?c1 != ?c2)
+    }""".format(concept_uri)
+
+
+    results = query(q)
+
+    concept_mapping = {}
+
+    concept_set = set()
+
+    concept_uris = {}
+    concept_types = {}
+
+    for result in results:
+        c1 = uri_to_label(result['c1']['value'])
+        c1t = uri_to_label(result['c1t']['value'])
+        c2 = uri_to_label(result['c2']['value'])
+        c2t = uri_to_label(result['c2t']['value'])
+
+
+        # Add the mapping between c1 and c2 in both directions
+        concept_mapping.setdefault(c1,{}).setdefault(c2,0)
+        concept_mapping.setdefault(c2,{}).setdefault(c1,0)
+
+        concept_mapping[c1][c2] += 1
+        concept_mapping[c2][c1] += 1
+
+        concept_set.add(c1)
+        concept_set.add(c2)
+
+        concept_types[c1] = c1t
+        concept_types[c2] = c2t
+
+        concept_uris[c1] = result['c1']['value'];
+        concept_uris[c2] = result['c2']['value'];
+
+
+
+
+
+    concepts = list(concept_set)
+
+    concept_matrix = range(0,len(concepts))
+
+    total = 0
+    for c1 in concepts:
+        concept_row = range(0,len(concepts))
+
+        for c2 in concepts:
+            if c2 in concept_mapping[c1]:
+                concept_row[concepts.index(c2)] = concept_mapping[c1][c2]
+                total += concept_mapping[c1][c2]
+            else :
+                concept_row[concepts.index(c2)] = 0
+
+        concept_matrix[concepts.index(c1)] = concept_row
+
+    percent_concept_matrix = range(0, len(concepts))
+
+    i = 0
+    for row in concept_matrix :
+
+        percent_concept_row = range(0, len(concepts))
+
+        j = 0
+        for cell in row :
+            percent_concept_row[j] = float(cell)/float(total)
+
+            j += 1
+
+        percent_concept_matrix[i] = percent_concept_row
+
+        i += 1
+
+
+    concept_dictionary = {}
+
+    concept_list = []
+
+    for c in concepts :
+        c_dict = {'name': c.replace("'",""), 'type': concept_types[c].lower(), 'color': concept_type_color_dict[concept_types[c].lower()], 'uri' : concept_uris[c] }
+        concept_list.append(c_dict)
+
+
+    return percent_concept_matrix, concept_list

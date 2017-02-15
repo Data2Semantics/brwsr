@@ -3,7 +3,7 @@ from werkzeug.http import parse_accept_header
 from urllib import urlencode
 import logging
 from urlparse import urljoin, urlsplit
-from client import visit, query, init, dereference
+from client import visit, query, init, dereference, prepare_graph
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -130,6 +130,14 @@ def document(resource_suffix=""):
 def icon():
     return jsonify({'error': "no icon"})
 
+
+@app.route('/graph')
+def graph():
+    uri = request.args.get('uri', None)
+
+    graph = prepare_graph(uri)
+
+    return render_template('graph.html', graph=graph)
 
 @app.route('/browse')
 def browse():
