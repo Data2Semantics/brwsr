@@ -4,3 +4,4 @@ include/
 .Python
 pip-selfcheck.json
 *.pyc
+src/app/config.py
