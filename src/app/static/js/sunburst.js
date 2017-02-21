@@ -4,6 +4,9 @@ function drawSunburstForConcept(service_url, uri) {
     $('#title').empty();
     // $('#graphOut').empty()
     $("#loading").show();
+
+    $("#brws_button").attr('href','/browse?uri='+uri);
+
     console.log('loading...');
     $.get(service_url, {
         'uri': uri
