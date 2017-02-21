@@ -1,4 +1,5 @@
 $( document ).ready(function() {
+    $(".graph").hide();
 
     $(".resource").each(function(index){
       var element = this;
@@ -11,6 +12,33 @@ $( document ).ready(function() {
             });
       }
     });
+
+    $(".graphs").each(function(index){
+      var element = this;
+      var anchor = $("<a href='#' class='gplaceholder'></a");
+      var icon=$("<span class='glyphicon glyphicon-record' aria-hidden='true'></span>");
+      var count = $(this).children(".graph").length;
+
+      anchor.append(icon);
+      if (count>1){
+        anchor.append('<span>'+count+'</span>');
+      }
+
+
+      $(element).append(anchor);
+    });
+
+    $(".graphs").hover(
+      function(e){
+
+        $(this).children(".gplaceholder").hide();
+        $(this).children(".graph").show();
+      },
+      function(e){
+        $(this).children(".graph").hide();
+        $(this).children(".gplaceholder").show();
+      }
+    );
 
     $(".graph").each(function(index){
       var element = this;
@@ -77,20 +105,24 @@ $( document ).ready(function() {
       anchor.append(label);
       anchor.attr('href',$(element).attr('local'));
 
-
-
       var icon = $("<span class='glyphicon glyphicon-link' aria-hidden='true'></span>");
       var icon_anchor = $('<a></a>');
       icon_anchor.append(icon)
       icon_anchor.attr('href',$(element).text());
       icon_anchor.css('margin-right','3px');
 
+      var view = $("<span class='glyphicon glyphicon-eye-open' aria=hidden='true'></span>");
+      var view_anchor = $('<a></a>');
+      view_anchor.append(view)
+      view_anchor.attr('href',"/graph?uri="+$(element).text());
+      view_anchor.css('margin-right', '3px');
+
+
       var span = $("<span></span>");
-
-
-
-
+      span.append(view_anchor);
       span.append(icon_anchor);
+
+
       span.append(anchor);
 
        $(element).html(span);

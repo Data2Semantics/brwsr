@@ -22,11 +22,13 @@
           <td>
             <div>
             {% for object in predicate.list|sort(attribute='o')|groupby(attribute='o') %}
+              <span class="graphs">
               {% for graph in object.list %}
                 {% if graph.g.local != "<urn:default>" %}
                   <span class="graph" local="{{ graph.g.local }}"></span>
                 {% endif %}
               {% endfor %}
+              </span>
               {% if object.grouper.type == 'uri' or object.grouper.type == 'bnode' %}
                 <span class="resource" local="{{ object.grouper.local }}">{{ object.grouper.value }}</span>
                 <br/>

@@ -1,9 +1,7 @@
-from flask import render_template, g, request, jsonify, make_response, redirect, url_for, abort
+from flask import render_template, request, jsonify, make_response, redirect, url_for, abort
 from werkzeug.http import parse_accept_header
-from urllib import urlencode
 import logging
-from urlparse import urljoin, urlsplit
-from client import visit, query, init, dereference
+from client import visit, query, init, prepare_sunburst
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -131,6 +129,25 @@ def icon():
     return jsonify({'error': "no icon"})
 
 
+@app.route('/graph')
+def graph():
+    uri = request.args.get('uri', None)
+    return render_template('graph.html', uri=uri, local=LOCAL_STORE)
+
+
+@app.route('/graph/json')
+def graph_json():
+    uri = request.args.get('uri', None)
+
+    results = visit(uri, format='html')
+    local_results = localize_results(results)
+    # graph = prepare_graph(local_results)
+    incoming, outgoing = prepare_sunburst(uri, local_results)
+
+    return jsonify({'incoming': incoming, 'outgoing': outgoing})
+    #return jsonify({'matrix': graph[0], 'graph': graph[1]})
+
+
 @app.route('/browse')
 def browse():
     uri = request.args.get('uri', None)
@@ -201,7 +218,9 @@ def local_sparql():
         log.debug("Querying local store")
         q = request.form['query']
         log.debug(q)
-        return query(q).serialize(format='json')
+        results =  query(q).serialize(format='json')
+        log.debug(results)
+        return results
     else:
         log.warning("No local store configured")
 

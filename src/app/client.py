@@ -6,6 +6,7 @@ import config
 import rdfextras
 import traceback
 import glob
+import string
 rdfextras.registerplugins()
 from rdflib import Dataset, URIRef
 import rdflib.util
@@ -39,6 +40,7 @@ def load_file(filename):
     g.load(filename, format=format)
     log.info("... done loading {}".format(filename))
 
+
 def init():
     if LOCAL_STORE:
         log.info("Loading local file(s): {}".format(LOCAL_FILE))
@@ -48,7 +50,8 @@ def init():
                 t.start()
         except:
             log.error(traceback.format_exc())
-            raise Exception("Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
+            raise Exception(
+                "Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
 
 
 def get_predicates(sparql, url):
@@ -85,9 +88,8 @@ def visit(url, format='html', external=False):
         return visit_sparql(url, format=format)
 
 
-
-
-# At this point, results for each URL are now neatly stored in order in 'results'
+# At this point, results for each URL are now neatly stored in order in
+# 'results'
 
 def get_sparql_endpoint():
     sparql = None
@@ -111,39 +113,12 @@ def visit_sparql(url, format='html'):
     predicates = get_predicates(sparql, url)
 
     if format == 'html':
-        # q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
-        #     {{
-        #     GRAPH ?g {{
-        #         {{
-        #             <{url}> ?p ?o .
-        #             BIND(<{url}> as ?s)
-        #         }} UNION {{
-        #             ?s ?p <{url}>.
-        #             BIND(<{url}> as ?o)
-        #         }} UNION {{
-        #             ?s <{url}> ?o.
-        #             BIND(<{url}> as ?p)
-        #         }}
-        #     }}
-        #     }} UNION {{
-        #         {{
-        #             <{url}> ?p ?o .
-        #             BIND(<{url}> as ?s)
-        #         }} UNION {{
-        #             ?s ?p <{url}>.
-        #             BIND(<{url}> as ?o)
-        #         }} UNION {{
-        #             ?s <{url}> ?o.
-        #             BIND(<{url}> as ?p)
-        #         }}
-        #     }}
-        # }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
-
-        limit_fraction = QUERY_RESULTS_LIMIT/3
+        limit_fraction = QUERY_RESULTS_LIMIT / 3
         if len(predicates) > 1:
-            predicate_query_limit_fraction = (limit_fraction*2)/len(predicates)
+            predicate_query_limit_fraction = (
+                limit_fraction * 2) / len(predicates)
         else:
-            predicate_query_limit_fraction = limit_fraction*2
+            predicate_query_limit_fraction = limit_fraction * 2
 
         results = []
 
@@ -151,8 +126,8 @@ def visit_sparql(url, format='html'):
             sparql_endpoint = get_sparql_endpoint()
             log.debug(query)
             sparql_endpoint.setQuery(query)
-            results.extend(list(sparql_endpoint.query().convert()["results"]["bindings"]))
-
+            results.extend(
+                list(sparql_endpoint.query().convert()["results"]["bindings"]))
 
         threads = []
         queries = []
@@ -200,7 +175,8 @@ def visit_sparql(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=limit_fraction)
 
-        process = Thread(target=predicate_specific_sparql, args=[url_is_predicate_query])
+        process = Thread(target=predicate_specific_sparql,
+                         args=[url_is_predicate_query])
         process.start()
         threads.append(process)
 
@@ -291,7 +267,7 @@ def visit_local(url, format='html'):
                     BIND(<{url}> as ?p)
                 }}
             }}
-        }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
+        }} LIMIT {limit} """.format(url=url, limit=QUERY_RESULTS_LIMIT)
 
         results = g.query(q)
     else:
@@ -348,7 +324,8 @@ def dereference(uri):
     if uriref not in g.graphs():
         resource_graph = g.graph(uriref)
 
-        headers = {'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
+        headers = {
+            'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
         response = requests.get(uri, headers=headers)
 
         if response.status_code == 200:
@@ -371,7 +348,8 @@ def dereference(uri):
                 print "Format not recognised"
 
             if f is not None:
-                # Parse the response into the graph with the given URI in our local store Dataset
+                # Parse the response into the graph with the given URI in our
+                # local store Dataset
                 resource_graph.parse(data=response.text, format=f)
         else:
             log.warning("URI did not return any recognisable result")
@@ -379,3 +357,45 @@ def dereference(uri):
 
 def query(query):
     return g.query(query)
+
+
+def prepare_sunburst(uri, results):
+    log.debug("Preparing sunburst")
+    incoming = {}
+    outgoing = {}
+
+    for r in results:
+        if r['s']['value'] == uri and r['o']['type'] != 'literal':
+            print "outgoing", r['s']['value'], r['p']['value'], r['o']['value']
+            outgoing.setdefault(r['p']['value'], {}).setdefault('children', {})[r['o']['value']] = {
+                "name": r['o']['value'],
+                "size": 1000
+            }
+        elif r['o']['value'] == uri:
+            print "incoming", r['s']['value'], r['p']['value'], r['o']['value']
+            incoming.setdefault(r['p']['value'], {}).setdefault('children', {})[r['s']['value']] = {
+                "name": r['s']['value'],
+                "size": 1000
+            }
+
+    incoming_array = []
+    for pk, pv in incoming.items():
+        edge_array = []
+        for sk, sv in pv['children'].items():
+             edge_array.append(sv)
+        incoming_array.append({
+            'name': pk,
+            'children': edge_array
+        })
+
+    outgoing_array = []
+    for pk, pv in outgoing.items():
+        edge_array = []
+        for ok, ov in pv['children'].items():
+             edge_array.append(ov)
+        outgoing_array.append({
+            'name': pk,
+            'children': edge_array
+        })
+
+    return {'name': uri, 'children': incoming_array}, {'name': uri, 'children': outgoing_array}

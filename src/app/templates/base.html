@@ -11,7 +11,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <a href="http://www.data2semantics.org" target="_new"><img class='img' src="{{url_for('.static', filename='logo-no-text-150dpi.png')}}"/></a><h1>brwsr <small class="vsmall"><a href="/">brws</a>, <a href="/sparql">qry</a>{% if local == True %}, <a href="/reload?uri={{resource}}">rld</a>{% endif %}</small></h1>
+                <a href="http://www.data2semantics.org" target="_new"><img class='img' src="{{url_for('.static', filename='logo-no-text-150dpi.png')}}"/></a><h1>brwsr <small class="vsmall"><a id="brws_button" href="/">brws</a>, <a href="/sparql">qry</a>, <a href="/graph?uri={{resource}}">vz</a>{% if local == True %}, <a href="/reload?uri={{resource}}">rld</a>{% endif %}</small></h1>
             </div>
         </div>
         <div class="row">
@@ -31,6 +31,7 @@
 
 {% block scripts %}
 {{super()}}
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 <script src="{{url_for('.static', filename='brwsr.js')}}"></script>
 {% endblock %}
 
