@@ -366,13 +366,13 @@ def prepare_sunburst(uri, results):
 
     for r in results:
         if r['s']['value'] == uri and r['o']['type'] not in ['literal','typed-literal']:
-            print "outgoing", r['s']['value'], r['p']['value'], r['o']['value']
+            # print "outgoing", r['s']['value'], r['p']['value'], r['o']['value']
             outgoing.setdefault(r['p']['value'], {}).setdefault('children', {})[r['o']['value']] = {
                 "name": r['o']['value'],
                 "size": 1000
             }
         elif r['o']['value'] == uri:
-            print "incoming", r['s']['value'], r['p']['value'], r['o']['value']
+            # print "incoming", r['s']['value'], r['p']['value'], r['o']['value']
             incoming.setdefault(r['p']['value'], {}).setdefault('children', {})[r['s']['value']] = {
                 "name": r['s']['value'],
                 "size": 1000
