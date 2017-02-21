@@ -267,7 +267,7 @@ def visit_local(url, format='html'):
                     BIND(<{url}> as ?p)
                 }}
             }}
-        }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
+        }} LIMIT {limit} """.format(url=url, limit=QUERY_RESULTS_LIMIT)
 
         results = g.query(q)
     else:
@@ -359,6 +359,49 @@ def query(query):
     return g.query(query)
 
 
+def prepare_sunburst(uri, results):
+    log.debug("Preparing sunburst")
+    incoming = {}
+    outgoing = {}
+
+    for r in results:
+        if r['s']['value'] == uri and r['o']['type'] != 'literal':
+            print "outgoing", r['s']['value'], r['p']['value'], r['o']['value']
+            outgoing.setdefault(r['p']['value'], {}).setdefault('children', {})[r['o']['value']] = {
+                "name": r['o']['value'],
+                "size": 1000
+            }
+        elif r['o']['value'] == uri:
+            print "incoming", r['s']['value'], r['p']['value'], r['o']['value']
+            incoming.setdefault(r['p']['value'], {}).setdefault('children', {})[r['s']['value']] = {
+                "name": r['s']['value'],
+                "size": 1000
+            }
+
+    incoming_array = []
+    for pk, pv in incoming.items():
+        edge_array = []
+        for sk, sv in pv['children'].items():
+             edge_array.append(sv)
+        incoming_array.append({
+            'name': pk,
+            'children': edge_array
+        })
+
+    outgoing_array = []
+    for pk, pv in outgoing.items():
+        edge_array = []
+        for ok, ov in pv['children'].items():
+             edge_array.append(ov)
+        outgoing_array.append({
+            'name': pk,
+            'children': edge_array
+        })
+
+    return {'name': uri, 'children': incoming_array}, {'name': uri, 'children': outgoing_array}
+
+
+
 def prepare_graph(results):
     color_array = ['#9edae5', '#ffbb78', '#dbdb8d', '#9edae5', '#2ca02c', '#9467bd', '#c5b0d5', '#c5b0d5', '#98df8a', '#c7c7c7', '#f7b6d2', '#d62728', '#e377c2', '#ff9896', '#bcbd22', '#ffbb78', '#2ca02c', '#98df8a', '#c7c7c7', '#17becf', '#17becf', '#7f7f7f', '#dbdb8d', '#bcbd22', '#c49c94', '#f7b6d2', '#aec7e8', '#2ca02c', '#e377c2', '#ffbb78', '#c5b0d5', '#98df8a', '#9467bd', '#bcbd22', '#ff7f0e', '#ff9896', '#ff9896', '#aec7e8', '#1f77b4', '#aec7e8', '#8c564b', '#ff7f0e', '#9467bd', '#ffbb78', '#d62728',
                                '#9467bd', '#e377c2', '#c7c7c7', '#d62728', '#8c564b', '#7f7f7f', '#7f7f7f', '#f7b6d2', '#9edae5', '#dbdb8d', '#d62728', '#1f77b4', '#7f7f7f', '#1f77b4', '#c5b0d5', '#9467bd', '#c49c94', '#8c564b', '#8c564b', '#ff9896', '#c5b0d5', '#e377c2', '#1f77b4', '#c7c7c7', '#d62728', '#aec7e8', '#f7b6d2', '#17becf', '#98df8a', '#17becf', '#c49c94', '#98df8a', '#2ca02c', '#ff7f0e', '#bcbd22', '#9edae5', '#ffbb78', '#2ca02c', '#dbdb8d', '#aec7e8', '#ff9896', '#c49c94', '#ff7f0e', '#1f77b4', '#ff7f0e', '#8c564b']
@@ -381,9 +424,9 @@ def prepare_graph(results):
         s = result['s']['value']
         o = result['o']['value']
 
-        s_base = string.join(s.split('/')[:6], '/')
+        s_base = string.join(s.split('/')[:5], '/')
         uri_ns_map[s] = s_base
-        o_base = string.join(o.split('/')[:6], '/')
+        o_base = string.join(o.split('/')[:5], '/')
         uri_ns_map[o] = o_base
         namespaces.add(s_base)
         namespaces.add(o_base)
@@ -391,8 +434,9 @@ def prepare_graph(results):
         concept_mapping.setdefault(s, {}).setdefault(o, 0)
         concept_mapping.setdefault(o, {}).setdefault(s, 0)
 
-        concept_mapping[s][o] += 1
-        concept_mapping[o][s] += 1
+        # Set the mapping to 1
+        concept_mapping[s][o] = 1
+        concept_mapping[o][s] = 1
 
         concept_set.add(s)
         concept_set.add(o)
@@ -401,25 +445,26 @@ def prepare_graph(results):
     ns_color_map = {}
     for ns in namespaces:
         i = namespaces.index(ns)
+        if i >= len(color_array):
+            i = i % len(color_array)
         ns_color_map[ns] = color_array[i]
 
     concepts = list(concept_set)
 
+    # The matrix is an array of arrays for each concept.
     concept_matrix = range(0, len(concepts))
-    log.debug(concept_matrix)
 
     total = 0
+    # Building the matrix
     for c1 in concepts:
-        log.debug(c1)
-        if c1 not in concept_mapping:
-            log.debug("{} not in concept mapping as origin".format(c1))
-            continue
-
+        # For each concept, we initialize an empty row.
         concept_row = range(0, len(concepts))
-
+        # For each other concept, we add to the proper column whether it has a relation with the other concept.
         for c2 in concepts:
             if c2 in concept_mapping[c1]:
+                # Go to the proper index in concept_row and set the value of the mapping (should be 1)
                 concept_row[concepts.index(c2)] = concept_mapping[c1][c2]
+                # Increment the total number of mappings
                 total += concept_mapping[c1][c2]
             else:
                 concept_row[concepts.index(c2)] = 0
@@ -430,7 +475,6 @@ def prepare_graph(results):
 
     i = 0
     for row in concept_matrix:
-        log.debug(row)
         percent_concept_row = range(0, len(concepts))
 
         j = 0
@@ -448,5 +492,7 @@ def prepare_graph(results):
     for c in concepts:
         c_dict = {'name': c, 'type': 'uri', 'color': ns_color_map[uri_ns_map[c]], 'uri': c}
         concept_list.append(c_dict)
+
+    print concepts
 
     return percent_concept_matrix, concept_list

@@ -2,7 +2,6 @@
 
 {% block brwsr_content %}
 <style>
-<style>
         .node {
           stroke: #fff;
           stroke-width: 1.5px;
@@ -43,6 +42,25 @@
             overflow: scroll;
         }
 
+        .inorout {
+            font-weight: 300;
+            display: inline-block;
+            min-width: 10px;
+            padding: 3px 7px;
+            font-size: 12px;
+            color: #ffffff;
+            line-height: 1;
+            vertical-align: baseline;
+            white-space: nowrap;
+            text-align: center;
+            background-color: #008cba;
+            border-radius: 10px;
+        }
+
+
+        #legend {
+          opacity: 0;
+        }
         #circle circle {
             fill: none;
             pointer-events: all;
@@ -61,6 +79,10 @@
             display: none;
           }
 
+          .path:hover {
+            stroke: black;
+          }
+
           .chord-label {
             font: 8px "Open Sans", sans-serif;
           }
@@ -68,21 +90,48 @@
 
 <div class="row">
   <div class="col-md-12">
-    <div id="graph">
+    <h4 id="title">&nbsp;</h4>
+    <div id="loading" class="alert alert-info">
+      Loading ...
+    </div>
+    <div id="noresponse" class="alert alert-warning">
+      Did not receive anything ...
+    </div>
+    <div id="legend" class="alert alert-info">
+      &nbsp;
     </div>
   </div>
 </div>
 
+<div class="row">
+  <div class="col-md-6">
+    <div id="graphOut">
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div id="graphIn">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+{% endblock %}
+
+
+{% block scripts %}
+{{super()}}
 <script src="https://d3js.org/d3.v3.min.js"></script>
-<script type="application/x-javascript" src="{{ url_for('.static',filename='js/chord.js') }}"></script>
+<script type="application/x-javascript" src="{{ url_for('.static',filename='js/sunburst.js') }}"></script>
 
 <script>
-  var graph = {{ graph|tojson }};
+  var uri = "{{ uri }}";
+  $('#loading').hide();
+  $('#noresponse').hide();
+  drawSunburstForConcept('http://localhost:5000/graph/json', uri);
 
-  drawChord('http:/blbla', graph[0], graph[1], '#graph');
-  console.log(graph);
+  // drawChord('http:/blbla', graph[0], graph[1], '#graph');
 </script>
-
-
-
 {% endblock %}
