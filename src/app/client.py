@@ -55,7 +55,7 @@ def init():
 
 
 def get_predicates(sparql, url):
-    predicate_query = """
+    predicate_query = u"""
         SELECT DISTINCT ?p WHERE {{
             {{ <{url}> ?p [] . }}
             UNION
