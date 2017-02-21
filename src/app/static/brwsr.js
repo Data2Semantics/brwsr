@@ -77,20 +77,24 @@ $( document ).ready(function() {
       anchor.append(label);
       anchor.attr('href',$(element).attr('local'));
 
-
-
       var icon = $("<span class='glyphicon glyphicon-link' aria-hidden='true'></span>");
       var icon_anchor = $('<a></a>');
       icon_anchor.append(icon)
       icon_anchor.attr('href',$(element).text());
       icon_anchor.css('margin-right','3px');
 
+      var view = $("<span class='glyphicon glyphicon-eye-open' aria=hidden='true'></span>");
+      var view_anchor = $('<a></a>');
+      view_anchor.append(view)
+      view_anchor.attr('href',"/graph?uri="+$(element).text());
+      view_anchor.css('margin-right', '3px');
+
+
       var span = $("<span></span>");
-
-
-
-
+      span.append(view_anchor);
       span.append(icon_anchor);
+
+
       span.append(anchor);
 
        $(element).html(span);
