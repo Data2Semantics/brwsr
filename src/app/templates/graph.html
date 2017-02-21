@@ -130,7 +130,7 @@
   var uri = "{{ uri }}";
   $('#loading').hide();
   $('#noresponse').hide();
-  drawSunburstForConcept('http://localhost:5000/graph/json', uri);
+  drawSunburstForConcept('{{service_url}}', uri);
 
   // drawChord('http:/blbla', graph[0], graph[1], '#graph');
 </script>

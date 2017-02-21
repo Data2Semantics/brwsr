@@ -132,7 +132,7 @@ def icon():
 @app.route('/graph')
 def graph():
     uri = request.args.get('uri', None)
-    return render_template('graph.html', uri=uri, local=LOCAL_STORE)
+    return render_template('graph.html', uri=uri, service_url="{}/graph/json".format(LOCAL_SERVER_NAME), local=LOCAL_STORE)
 
 
 @app.route('/graph/json')
