@@ -1,9 +1,7 @@
-from flask import render_template, g, request, jsonify, make_response, redirect, url_for, abort
+from flask import render_template, request, jsonify, make_response, redirect, url_for, abort
 from werkzeug.http import parse_accept_header
-from urllib import urlencode
 import logging
-from urlparse import urljoin, urlsplit
-from client import visit, query, init, dereference, prepare_graph, prepare_sunburst
+from client import visit, query, init, prepare_sunburst
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
