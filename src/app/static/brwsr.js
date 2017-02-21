@@ -1,4 +1,5 @@
 $( document ).ready(function() {
+    $(".graph").hide();
 
     $(".resource").each(function(index){
       var element = this;
@@ -11,6 +12,33 @@ $( document ).ready(function() {
             });
       }
     });
+
+    $(".graphs").each(function(index){
+      var element = this;
+      var anchor = $("<a href='#' class='gplaceholder'></a");
+      var icon=$("<span class='glyphicon glyphicon-record' aria-hidden='true'></span>");
+      var count = $(this).children(".graph").length;
+
+      anchor.append(icon);
+      if (count>1){
+        anchor.append('<span>'+count+'</span>');
+      }
+
+
+      $(element).append(anchor);
+    });
+
+    $(".graphs").hover(
+      function(e){
+
+        $(this).children(".gplaceholder").hide();
+        $(this).children(".graph").show();
+      },
+      function(e){
+        $(this).children(".graph").hide();
+        $(this).children(".gplaceholder").show();
+      }
+    );
 
     $(".graph").each(function(index){
       var element = this;
