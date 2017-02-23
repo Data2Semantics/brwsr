@@ -91,10 +91,10 @@ def visit(url, format='html', external=False):
 # At this point, results for each URL are now neatly stored in order in
 # 'results'
 
-def get_sparql_endpoint():
+def get_sparql_endpoint(url):
     sparql = None
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
-        if url.startswith(DEFAULT_BASE + prefix + '/'):
+        if url.startswith(DEFAULT_BASE + prefix + '/') or url.startswith(prefix):
             sparql = SPARQLWrapper(endpoint)
             break
     if not sparql:
@@ -109,7 +109,7 @@ def get_sparql_endpoint():
 
 
 def visit_sparql(url, format='html'):
-    sparql = get_sparql_endpoint()
+    sparql = get_sparql_endpoint(url)
     predicates = get_predicates(sparql, url)
 
     if format == 'html':
@@ -123,7 +123,7 @@ def visit_sparql(url, format='html'):
         results = []
 
         def predicate_specific_sparql(query):
-            sparql_endpoint = get_sparql_endpoint()
+            sparql_endpoint = get_sparql_endpoint(url)
             log.debug(query)
             sparql_endpoint.setQuery(query)
             results.extend(
