@@ -22,6 +22,7 @@ LOCAL_FILE = config.LOCAL_FILE
 SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
 
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
+SPARQL_METHOD = config.SPARQL_METHOD
 
 DEFAULT_BASE = config.DEFAULT_BASE
 
@@ -65,11 +66,18 @@ def get_predicates(sparql, url):
 
     sparql.setQuery(predicate_query)
 
-    sparql_results = list(sparql.query().convert()["results"]["bindings"])
+    log.debug(predicate_query)
 
-    predicates = [r['p']['value'] for r in sparql_results]
+    try:
+        sparql_results = list(sparql.query().convert()["results"]["bindings"])
 
-    log.debug(predicates)
+        predicates = [r['p']['value'] for r in sparql_results]
+
+        log.debug(predicates)
+    except:
+        log.warning("Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
+
+        predicates = []
 
     return predicates
 
@@ -102,9 +110,13 @@ def get_sparql_endpoint(url):
         log.debug("Will be using {}".format(SPARQL_ENDPOINT))
 
     sparql.setReturnFormat(JSON)
+    sparql.setMethod(SPARQL_METHOD)
+    log.debug("Using method {} for accessing the SPARQL endpoint".format(SPARQL_METHOD))
+
     for key, value in CUSTOM_PARAMETERS.items():
         sparql.addParameter(key, value)
 
+    log.debug("Using endpoint URL: {}".format(sparql.endpoint))
     return sparql
 
 
@@ -126,8 +138,12 @@ def visit_sparql(url, format='html'):
             sparql_endpoint = get_sparql_endpoint(url)
             log.debug(query)
             sparql_endpoint.setQuery(query)
+
+            res = sparql_endpoint.query().convert()
+            log.debug(res)
+
             results.extend(
-                list(sparql_endpoint.query().convert()["results"]["bindings"]))
+                list(res["results"]["bindings"]))
 
         threads = []
         queries = []

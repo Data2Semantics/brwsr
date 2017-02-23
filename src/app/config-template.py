@@ -90,6 +90,9 @@ BROWSE_EXTERNAL_URIS = True
 # servers that are visited frequently. TODO: store results in a triple store
 DEREFERENCE_EXTERNAL_URIS = False
 
+# Set the HTTP method to use for communicating with SPARQL endpoint. 'GET' is the default.
+SPARQL_METHOD = 'GET'
+
 # Set any custom parameters to be sent to the SPARQL endpoint
 # e.g. CUSTOM_PARAMETERS = {'reasoning': 'true'} for Stardog
 CUSTOM_PARAMETERS = {'reasoning': 'true'}
