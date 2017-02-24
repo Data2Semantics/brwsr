@@ -22,7 +22,12 @@ LOCAL_FILE = config.LOCAL_FILE
 SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
 
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
-SPARQL_METHOD = config.SPARQL_METHOD
+
+# For backwards compatibility: some configurations do not specify the SPARQL_METHOD parameter
+try:
+    SPARQL_METHOD = config.SPARQL_METHOD
+except:
+    SPARQL_METHOD = 'GET'
 
 DEFAULT_BASE = config.DEFAULT_BASE
 
@@ -73,7 +78,7 @@ def get_predicates(sparql, url):
 
         predicates = [r['p']['value'] for r in sparql_results]
 
-        log.debug(predicates)
+        # log.debug(predicates)
     except:
         log.warning("Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
 
@@ -95,9 +100,6 @@ def visit(url, format='html', external=False):
     else:
         return visit_sparql(url, format=format)
 
-
-# At this point, results for each URL are now neatly stored in order in
-# 'results'
 
 def get_sparql_endpoint(url):
     sparql = None
@@ -201,6 +203,7 @@ def visit_sparql(url, format='html'):
         for process in threads:
             process.join()
 
+        # We also add local results (result of dereferencing)
         local_results = list(visit_local(url, format))
         results.extend(local_results)
 
@@ -342,7 +345,12 @@ def dereference(uri):
 
         headers = {
             'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
-        response = requests.get(uri, headers=headers)
+
+        try:
+            response = requests.get(uri, headers=headers)
+        except:
+            log.error(traceback.format_exc())
+            return
 
         if response.status_code == 200:
             content_type = response.headers['content-type']
