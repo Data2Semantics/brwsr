@@ -361,7 +361,7 @@ def dereference(uri):
             'Accept': 'text/turtle, application/x-turtle, application/rdf+xml, text/trig'}
 
         try:
-            response = requests.get(uri, headers=headers)
+            response = requests.get(uri, headers=headers, timeout=2)
         except:
             log.error(traceback.format_exc())
             return
