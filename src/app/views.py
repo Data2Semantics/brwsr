@@ -142,10 +142,9 @@ def graph_json():
     results = visit(uri, format='html')
     local_results = localize_results(results)
     # graph = prepare_graph(local_results)
-    incoming, outgoing = prepare_sunburst(uri, local_results)
+    labels, incoming, outgoing = prepare_sunburst(uri, local_results)
 
-    return jsonify({'incoming': incoming, 'outgoing': outgoing})
-    #return jsonify({'matrix': graph[0], 'graph': graph[1]})
+    return jsonify({'labels': labels, 'incoming': incoming, 'outgoing': outgoing})
 
 
 @app.route('/browse')

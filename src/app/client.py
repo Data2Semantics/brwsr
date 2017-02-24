@@ -35,8 +35,11 @@ CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
 DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
 label_properties = ['http://www.w3.org/2004/02/skos/core#prefLabel',
-                    'http://www.w3.org/2004/02/skos/core#altLabel', str(RDFS['label']),
-                    'http://xmlns.com/foaf/0.1/name']
+                    'http://www.w3.org/2004/02/skos/core#altLabel',
+                    str(RDFS['label']),
+                    'http://xmlns.com/foaf/0.1/name',
+                    'http://purl.org/dc/elements/1.1/title',
+                    'http://purl.org/dc/terms/title']
 
 
 g = Dataset()

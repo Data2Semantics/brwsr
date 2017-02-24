@@ -15,7 +15,14 @@ function drawSunburstForConcept(service_url, uri) {
         console.log('done loading...');
         console.log(data);
 
-        $("#title").html(uri);
+        labels = ""
+        for(i in data.labels){
+          labels += data.labels[i]
+          if (i<data.labels.length-1){
+            labels += ', &nbsp;'
+          }
+        }
+        $("#title").html(uri + "&nbsp;<small>" + labels + "</small>");
 
         if (data) {
             if (data.outgoing.hasOwnProperty('children') && data.outgoing.children.length > 0) {
