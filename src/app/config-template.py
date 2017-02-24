@@ -19,6 +19,8 @@ SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
 #
 # You can also use Python-style regular expressions in the prefix description (the keys of this dictionary)
 #
+# Note that brwsr will allways *also* query the default SPARQL_ENDPOINT
+#
 # Example:
 # SPARQL_ENDPOINT_MAPPING = {
 #     "/example": "http://the.sparql.endpoint.for.uris.starting.with/example/sparql",
