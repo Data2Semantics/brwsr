@@ -1,5 +1,5 @@
-from SPARQLWrapper import SPARQLWrapper, JSON, XML, TURTLE
-import json
+from SPARQLWrapper import SPARQLWrapper, JSON, XML
+from threading import Thread
 import logging
 import requests
 import config
@@ -7,11 +7,8 @@ import rdfextras
 import traceback
 import glob
 import re
-import string
 rdfextras.registerplugins()
-from rdflib import Dataset, URIRef
-import rdflib.util
-from threading import Thread
+from rdflib import Dataset, URIRef, RDFS
 
 # from app import app
 log = logging.getLogger(__name__)
@@ -24,7 +21,8 @@ SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
 
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
 
-# For backwards compatibility: some configurations do not specify the SPARQL_METHOD parameter
+# For backwards compatibility: some configurations do not specify the
+# SPARQL_METHOD parameter
 try:
     SPARQL_METHOD = config.SPARQL_METHOD
 except:
@@ -36,7 +34,10 @@ QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
 CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
 DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
-labels = {}
+label_properties = ['http://www.w3.org/2004/02/skos/core#prefLabel',
+                    'http://www.w3.org/2004/02/skos/core#altLabel', str(RDFS['label']),
+                    'http://xmlns.com/foaf/0.1/name']
+
 
 g = Dataset()
 
@@ -82,7 +83,8 @@ def get_predicates(sparqls, url):
 
             # log.debug(predicates)
         except:
-            log.warning("Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
+            log.warning(
+                "Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
 
     return predicates
 
@@ -118,7 +120,8 @@ def get_sparql_endpoints(url):
     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     sparqls.append(sparql)
 
-    log.debug("Will be using the following endpoints: {}".format([s.endpoint for s in sparqls]))
+    log.debug("Will be using the following endpoints: {}".format(
+        [s.endpoint for s in sparqls]))
 
     for s in sparqls:
         s.setReturnFormat(JSON)
@@ -200,7 +203,7 @@ def visit_sparql(url, format='html'):
 
         for s in sparqls:
             process = Thread(target=predicate_specific_sparql,
-                         args=[s, url_is_predicate_query])
+                             args=[s, url_is_predicate_query])
             process.start()
             threads.append(process)
 
@@ -399,15 +402,22 @@ def prepare_sunburst(uri, results):
     incoming = {}
     outgoing = {}
 
+    labels = set()
     for r in results:
-        if r['s']['value'] == uri and r['o']['type'] not in ['literal','typed-literal']:
-            # print "outgoing", r['s']['value'], r['p']['value'], r['o']['value']
+        log.debug(r['p']['value'])
+        if r['s']['value'] == uri and r['p']['value'] in label_properties:
+            labels.add(r['o']['value'])
+
+        if r['s']['value'] == uri and r['o']['type'] not in ['literal', 'typed-literal']:
+            # print "outgoing", r['s']['value'], r['p']['value'],
+            # r['o']['value']
             outgoing.setdefault(r['p']['value'], {}).setdefault('children', {})[r['o']['value']] = {
                 "name": r['o']['value'],
                 "size": 1000
             }
         elif r['o']['value'] == uri:
-            # print "incoming", r['s']['value'], r['p']['value'], r['o']['value']
+            # print "incoming", r['s']['value'], r['p']['value'],
+            # r['o']['value']
             incoming.setdefault(r['p']['value'], {}).setdefault('children', {})[r['s']['value']] = {
                 "name": r['s']['value'],
                 "size": 1000
@@ -417,7 +427,7 @@ def prepare_sunburst(uri, results):
     for pk, pv in incoming.items():
         edge_array = []
         for sk, sv in pv['children'].items():
-             edge_array.append(sv)
+            edge_array.append(sv)
         incoming_array.append({
             'name': pk,
             'children': edge_array
@@ -427,10 +437,10 @@ def prepare_sunburst(uri, results):
     for pk, pv in outgoing.items():
         edge_array = []
         for ok, ov in pv['children'].items():
-             edge_array.append(ov)
+            edge_array.append(ov)
         outgoing_array.append({
             'name': pk,
             'children': edge_array
         })
 
-    return {'name': uri, 'children': incoming_array}, {'name': uri, 'children': outgoing_array}
+    return list(labels), {'name': uri, 'children': incoming_array}, {'name': uri, 'children': outgoing_array}
