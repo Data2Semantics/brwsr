@@ -93,6 +93,7 @@ def visit(url, format='html', external=False):
     # If this uri is not in our namespace, and DEREFERENCE_EXTERNAL_URIS is true
     # We go out, and add the retrieved RDF to our local store
     if external and DEREFERENCE_EXTERNAL_URIS:
+        log.debug("Dereferencing external uri")
         dereference(url)
 
     if LOCAL_STORE:
@@ -379,7 +380,7 @@ def dereference(uri):
                 f = 'jsonld'
             else:
                 f = None
-                print "Format not recognised"
+                print "Format {} not recognised as valid RDF serialization format".format(content_type)
 
             if f is not None:
                 # Parse the response into the graph with the given URI in our
