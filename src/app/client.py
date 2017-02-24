@@ -61,7 +61,7 @@ def init():
                 "Cannot guess file format for {} or could not load file".format(LOCAL_FILE))
 
 
-def get_predicates(sparql, url):
+def get_predicates(sparqls, url):
     predicate_query = u"""
         SELECT DISTINCT ?p WHERE {{
             {{ <{url}> ?p [] . }}
@@ -70,20 +70,19 @@ def get_predicates(sparql, url):
         }}
     """.format(url=url)
 
-    sparql.setQuery(predicate_query)
+    predicates = []
+    for s in sparqls:
+        s.setQuery(predicate_query)
+        log.debug(predicate_query)
 
-    log.debug(predicate_query)
+        try:
+            sparql_results = list(s.query().convert()["results"]["bindings"])
 
-    try:
-        sparql_results = list(sparql.query().convert()["results"]["bindings"])
+            predicates.extend([r['p']['value'] for r in sparql_results])
 
-        predicates = [r['p']['value'] for r in sparql_results]
-
-        # log.debug(predicates)
-    except:
-        log.warning("Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
-
-        predicates = []
+            # log.debug(predicates)
+        except:
+            log.warning("Could not determine related predicates, because there were no triples where {} occurs als subject or object".format(url))
 
     return predicates
 
@@ -102,32 +101,36 @@ def visit(url, format='html', external=False):
         return visit_sparql(url, format=format)
 
 
-def get_sparql_endpoint(url):
+def get_sparql_endpoints(url):
     sparql = None
+    sparqls = []
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
-        # log.debug(url)
-        # log.debug(prefix)
-        if url.startswith(DEFAULT_BASE + prefix + '/') or url.startswith(prefix) or re.match(prefix, url) is not None:
-            sparql = SPARQLWrapper(endpoint)
-            break
-    if not sparql:
-        sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-        log.debug("Will be using {}".format(SPARQL_ENDPOINT))
+        # If the URL starts with the default base + the prefix, or
+        # If the URL starts with the prefix itself, or
+        # If the URL matches the regular expression in the prefix,
+        # AND if the endpoint is not already in the list...
+        if (url.startswith(DEFAULT_BASE + prefix + '/') or url.startswith(prefix) or re.match(prefix, url) is not None) and endpoint not in sparqls:
+            s = SPARQLWrapper(endpoint)
+            sparqls.append(s)
 
-    sparql.setReturnFormat(JSON)
-    sparql.setMethod(SPARQL_METHOD)
-    log.debug("Using method {} for accessing the SPARQL endpoint".format(SPARQL_METHOD))
+    # Also add the default endpoint
+    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+    sparqls.append(sparql)
 
-    for key, value in CUSTOM_PARAMETERS.items():
-        sparql.addParameter(key, value)
+    log.debug("Will be using the following endpoints: {}".format([s.endpoint for s in sparqls]))
 
-    log.debug("Using endpoint URL: {}".format(sparql.endpoint))
-    return sparql
+    for s in sparqls:
+        s.setReturnFormat(JSON)
+        s.setMethod(SPARQL_METHOD)
+        for key, value in CUSTOM_PARAMETERS.items():
+            sparql.addParameter(key, value)
+
+    return sparqls
 
 
 def visit_sparql(url, format='html'):
-    sparql = get_sparql_endpoint(url)
-    predicates = get_predicates(sparql, url)
+    sparqls = get_sparql_endpoints(url)
+    predicates = get_predicates(sparqls, url)
 
     if format == 'html':
         limit_fraction = QUERY_RESULTS_LIMIT / 3
@@ -139,14 +142,11 @@ def visit_sparql(url, format='html'):
 
         results = []
 
-        def predicate_specific_sparql(query):
-            sparql_endpoint = get_sparql_endpoint(url)
+        def predicate_specific_sparql(sparql, query):
             log.debug(query)
-            sparql_endpoint.setQuery(query)
 
-            res = sparql_endpoint.query().convert()
-            # log.debug(res)
-
+            sparql.setQuery(query)
+            res = sparql.query().convert()
             results.extend(
                 list(res["results"]["bindings"]))
 
@@ -179,9 +179,11 @@ def visit_sparql(url, format='html'):
                 }}
             }} LIMIT {limit}""".format(url=url, predicate=p, limit=predicate_query_limit_fraction)
 
-            process = Thread(target=predicate_specific_sparql, args=[q])
-            process.start()
-            threads.append(process)
+            for s in sparqls:
+                # Start processes for each endpoint, for each predicate query
+                process = Thread(target=predicate_specific_sparql, args=[s, q])
+                process.start()
+                threads.append(process)
 
         url_is_predicate_query = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
             {{
@@ -195,10 +197,11 @@ def visit_sparql(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=limit_fraction)
 
-        process = Thread(target=predicate_specific_sparql,
-                         args=[url_is_predicate_query])
-        process.start()
-        threads.append(process)
+        for s in sparqls:
+            process = Thread(target=predicate_specific_sparql,
+                         args=[s, url_is_predicate_query])
+            process.start()
+            threads.append(process)
 
         # We now pause execution on the main thread by 'joining' all of our started threads.
         # This ensures that each has finished processing the urls.
@@ -241,17 +244,22 @@ def visit_sparql(url, format='html'):
             }}
         }} LIMIT {limit}""".format(url=url, limit=QUERY_RESULTS_LIMIT)
 
-        sparql.setQuery(q)
+        result_dataset = Dataset()
+
+        for s in sparqls:
+            s.setQuery(q)
+            s.setReturnFormat(XML)
+
+            result_dataset += s.query().convert()
 
         if format == 'jsonld':
-            sparql.setReturnFormat(XML)
-            results = sparql.query().convert().serialize(format='json-ld')
+            results = result_dataset.serialize(format='json-ld')
         elif format == 'rdfxml':
-            sparql.setReturnFormat(XML)
-            results = sparql.query().convert().serialize(format='pretty-xml')
+            s.setReturnFormat(XML)
+            results = result_dataset.serialize(format='pretty-xml')
         elif format == 'turtle':
-            sparql.setReturnFormat(XML)
-            results = sparql.query().convert().serialize(format='turtle')
+            s.setReturnFormat(XML)
+            results = result_dataset.serialize(format='turtle')
         else:
             results = 'Nothing'
 
