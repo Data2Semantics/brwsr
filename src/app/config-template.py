@@ -14,11 +14,15 @@ LOCAL_FILE = 'justsomeexample.trig'
 SPARQL_ENDPOINT = "http://your.sparql.endpoint.here/sparql"
 
 # If brwsr is backed by multiple separate triple stores, use SPARQL_ENDPOINT_MAPPING to
-# make sure that each URI for which the LOCAL_NAME (i.e. the URI with the DEFAULT_BASE removed)
+# make sure that each URI for which the LOCAL_NAME (i.e. the URI with the DEFAULT_BASE remove, if present)
 # starts with a key of the SPARQL_ENDPOINT_MAPPING file, the proper SPARQL endpoint is used.
+#
+# You can also use Python-style regular expressions in the prefix description (the keys of this dictionary)
+#
 # Example:
 # SPARQL_ENDPOINT_MAPPING = {
-#     "/example": "http://the.sparql.endpoint.for.uris.starting.with/example/sparql"
+#     "/example": "http://the.sparql.endpoint.for.uris.starting.with/example/sparql",
+#     "http://dbpedia.org/\w+/": "http://dbpedia.org/sparql"
 # }
 SPARQL_ENDPOINT_MAPPING = {}
 

@@ -6,6 +6,7 @@ import config
 import rdfextras
 import traceback
 import glob
+import re
 import string
 rdfextras.registerplugins()
 from rdflib import Dataset, URIRef
@@ -104,7 +105,9 @@ def visit(url, format='html', external=False):
 def get_sparql_endpoint(url):
     sparql = None
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
-        if url.startswith(DEFAULT_BASE + prefix + '/') or url.startswith(prefix):
+        # log.debug(url)
+        # log.debug(prefix)
+        if url.startswith(DEFAULT_BASE + prefix + '/') or url.startswith(prefix) or re.match(prefix, url) is not None:
             sparql = SPARQLWrapper(endpoint)
             break
     if not sparql:
@@ -142,13 +145,12 @@ def visit_sparql(url, format='html'):
             sparql_endpoint.setQuery(query)
 
             res = sparql_endpoint.query().convert()
-            log.debug(res)
+            # log.debug(res)
 
             results.extend(
                 list(res["results"]["bindings"]))
 
         threads = []
-        queries = []
         local_results = []
         for p in predicates:
             q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
