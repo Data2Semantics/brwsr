@@ -8,9 +8,15 @@ import traceback
 import glob
 import re
 rdfextras.registerplugins()
+import rdflib
 from rdflib import Dataset, URIRef, RDFS
 
 # from app import app
+
+from datetime import datetime
+print "client", datetime.now().isoformat()
+
+# log = app.logger
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 

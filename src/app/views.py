@@ -7,7 +7,8 @@ import traceback
 from rdflib import URIRef, Literal, BNode
 
 from app import app
-
+from datetime import datetime
+print "views", datetime.now().isoformat()
 
 log = app.logger
 log.setLevel(logging.DEBUG)

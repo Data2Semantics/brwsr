@@ -1,7 +1,10 @@
 from flask import Flask
 from flask_bootstrap import Bootstrap
-import client
-import config
+import os
+import config, client
+
+from datetime import datetime
+print "init", datetime.now().isoformat()
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the
@@ -51,7 +54,11 @@ app.debug = True
 if (hasattr(config, 'DEBUG')):
     app.debug = config.DEBUG
 
-# Initialize the client
-client.init()
-
 import views
+
+if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    # The app is not in debug mode or we are in the reloaded process
+    client.init()
+
+def run():
+    app.run(host="0.0.0.0", port=(config.PORT if hasattr(config, 'PORT') else 5000))
