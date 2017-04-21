@@ -10,7 +10,7 @@ case ${1} in
     ;;
   app:help)
     echo "Available options:"
-    echo " app:start        - Starts qber (default)"
+    echo " app:start        - Starts brwsr (default)"
     echo " [command]        - Execute the specified command, eg. /bin/bash."
     ;;
   *)
