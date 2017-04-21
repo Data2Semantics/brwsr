@@ -1,0 +1,14 @@
+version: '3'
+services:
+  qber:
+    image: clariah/brwsr:1.0.0
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - SPARQL_ENDPOINT=http://dbpedia.org/sparql
+      - DEFAULT_BASE=http://dbpedia.org
+      - LOCAL_SERVER_NAME=http://localhost:5000
+      - START_LOCAL_NAME=resource/Amsterdam
