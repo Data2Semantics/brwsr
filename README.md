@@ -65,7 +65,7 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 | `QUERY_RESULTS_LIMIT` | Integer | `5000` |  Set query results limit because otherwise your browser might crash. | both |
 | `BROWSE_EXTERNAL_URIS` | `True`, `False` | `True` | Browse URIs that do not match the `DEFAULT_BASE`. This allows for browsing resources from different namespaces within the same endpoint store. | both |
 |  `DEREFERENCE_EXTERNAL_URIS` | `True`, `False` | `False` | Dereference external URIs (i.e. retrieve RDF served at that location, and display the resource). This may be slow, depending on the responsiveness of the server at hand. Also, the resulting RDF is stored locally (in memory) which means that this is a potential memory hog for servers that are visited frequently. | both |
-| 'PORT' | Integer | `5000` | The port via which to run brwsr | both (but needs care when using Docker) |
+| `PORT` | Integer | `5000` | The port via which to run brwsr | both (but needs care when using Docker) |
 | `DEBUG` | `True`, `False` | `False` | Switch on debug logging | both |
 | `SPARQL_METHOD` | `GET`, `POST` | `GET` | Set the HTTP method to use for communicating with SPARQL endpoint. | both
 | `CUSTOM_PARAMETERS` | Dictionary | `{'reasoning': True}` | Set any custom parameters to be sent to the SPARQL endpoint, e.g. `CUSTOM_PARAMETERS = {'reasoning': 'true'}` for Stardog | only `config.py` |
