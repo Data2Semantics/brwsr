@@ -2,9 +2,6 @@ version: '3'
 services:
   qber:
     image: clariah/brwsr:latest
-    build:
-      context: ./
-      dockerfile: ./Dockerfile
     ports:
       - "127.0.0.1:5000:5000"
     environment:
