@@ -14,22 +14,14 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 
 ### Docker-based
 
-#### Installation
-* Make sure you have [Docker](https://www.docker.com) and docker-compose installed for your platform
-* Open up a terminal
-* Copy this docker-compose file: https://raw.githubusercontent.com/Data2Semantics/brwsr/master/docker-compose.yml 
-* Run `docker-compose up`
+#### Prerequisites
+* Make sure you have [Docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/install/) installed for your platform
 
 #### Using
-* Using the base setup for the brwsr docker, run `docker run clariah/brwsr`
-* This will run brwsr at <http://localhost:5000> with the DBPedia SPARQL endpoint set by default.
-* Setting configuration parameters works by passing environment variables to the `docker run` command, e.g. from a file:
-
- `docker run --env-file ./brwsr.list clariah/brwsr`
-
- or directly
-
- `docker run -e SPARQL_ENDPOINT=http://dbpedia.org/sparql clariah/brwsr`
+* To use the base setup, copy this docker-compose file to a directory: Copy this docker-compose file: https://raw.githubusercontent.com/Data2Semantics/brwsr/master/docker-compose.yml.
+* Run `docker-compose up`.
+* This will run brwsr at <http://localhost:5000> with the DBPedia SPARQL endpoint.
+* To modify the configuration, change the environment variables in the `docker-compose.yml` file.
 * For configuration parameters, see below.
 
 ### As a Flask application
