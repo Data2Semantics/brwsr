@@ -1,7 +1,7 @@
 version: '3'
 services:
   qber:
-    image: clariah/brwsr:1.0.1
+    image: clariah/brwsr:latest
     build:
       context: ./
       dockerfile: ./Dockerfile
