@@ -15,9 +15,10 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 ### Docker-based
 
 #### Installation
-* Make sure you have [Docker](https://www.docker.com) installed for your platform
+* Make sure you have [Docker](https://www.docker.com) and docker-compose installed for your platform
 * Open up a terminal
-* Run `docker pull clariah/brwsr`
+* Copy this docker-compose file: https://raw.githubusercontent.com/Data2Semantics/brwsr/master/docker-compose.yml 
+* Run `docker-compose up`
 
 #### Using
 * Using the base setup for the brwsr docker, run `docker run clariah/brwsr`
