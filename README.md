@@ -18,7 +18,7 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 * Make sure you have [Docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/install/) installed for your platform
 
 #### Using
-* To use the base setup, copy this docker-compose file to a directory: Copy this docker-compose file: https://raw.githubusercontent.com/Data2Semantics/brwsr/master/docker-compose.yml.
+* To use the base setup, copy this docker-compose file to a directory: https://raw.githubusercontent.com/Data2Semantics/brwsr/master/docker-compose.yml.
 * Run `docker-compose up`.
 * This will run brwsr at <http://localhost:5000> with the DBPedia SPARQL endpoint.
 * To modify the configuration, change the environment variables in the `docker-compose.yml` file.
