@@ -43,7 +43,7 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 ### Configuration Parameters
 
 
-| Parameter | Allowed Values | Default | Description | ENV/`config.py` |
+| Parameter | Allowed Values | Default | Description | `docker-compose.yml` or `config.py` |
 | :--------- | :-------------- | :------- | :----------- | :----------------------- |
 | `LOCAL_STORE` | `True`, `False` | `False` | Set `LOCAL_STORE` to `True` if you want brwsr to just load a (smallish) RDF file into server memory rather than operate on an external SPARQL store | both |
 | `LOCAL_FILE` | File path | `None` | Set `LOCAL_FILE` to the relative or absolute path of the file you want brwsr to load when `LOCAL_STORE` is True. The brwsr application will just use RDFLib to guess the file format based on the extension. You can use UNIX file masks such as * and ? to load multiple files. When using Docker, make sure the files are on a filesystem that is accessible to Docker | both |
