@@ -62,7 +62,12 @@ def init():
     if LOCAL_STORE:
         log.info("Loading local file(s): {}".format(LOCAL_FILE))
         try:
-            for filename in glob.glob(LOCAL_FILE):
+            files = glob.glob(LOCAL_FILE)
+            if len(files) == 0:
+                log.error("No files match the UNIX file pattern specified in {}, or the pattern is invalid.".format(LOCAL_FILE))
+                return
+            for filename in files:
+                log.info("Trying to load file: {}".format(filename))
                 t = Thread(target=load_file, args=(filename,))
                 t.start()
         except:
