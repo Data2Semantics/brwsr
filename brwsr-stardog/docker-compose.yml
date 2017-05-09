@@ -1,0 +1,19 @@
+version: '3'
+services:
+  brwsr:
+    image: clariah/brwsr:latest
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - SPARQL_ENDPOINT=http://stardog:5820/stardog/query
+      - LOCAL_SERVER_NAME=http://localhost:5000
+      - DEFAULT_BASE=http://dbpedia.org
+      - START_LOCAL_NAME=resource/Amsterdam
+  stardog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/:/var/data
+    ports:
+      - "127.0.0.1:5820:5820"
