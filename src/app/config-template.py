@@ -32,6 +32,11 @@ SPARQL_ENDPOINT = os.getenv('SPARQL_ENDPOINT') or "http://your.sparql.endpoint.h
 # NB: This parameter cannot be set using environment variables
 SPARQL_ENDPOINT_MAPPING = {}
 
+# The statements Url of a Druid instance (http://triply.cc),
+# e.g. "http://druid.instance.url/_api/datasets/Username/Dataset/statements.triply"
+DRUID_STATEMENTS_URL = os.getenv('DRUID_STATEMENTS_URL') or None
+
+
 # The DEFAULT_BASE is the prefix of the URI's in the triple store that can be browsed by brwsr
 # Requests to brwsr only include the local name (i.e. the the part after the third slash '/'),
 # the DEFAULT_BASE is *always* prepended to this local name to make up the URI that's used to
@@ -80,7 +85,7 @@ START_LOCAL_NAME = os.getenv('START_LOCAL_NAME') or "some/local/name"
 # The START_URI is simply the combination of the DEFAULT_BASE and the START_LOCAL_NAME
 # (i.e. there is no need to change this, usually)
 # e.g. this will become "http://dbpedia.org/resource/Amsterdam"
-START_URI = os.getenv('START_URI') or urljoin(DEFAULT_BASE,START_LOCAL_NAME)
+START_URI = os.getenv('START_URI') or urljoin(DEFAULT_BASE, START_LOCAL_NAME)
 
 # Set query results limit because otherwise your browser might crash.
 QUERY_RESULTS_LIMIT = os.getenv('QUERY_RESULTS_LIMIT') or 1000

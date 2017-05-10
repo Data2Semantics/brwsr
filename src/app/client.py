@@ -24,8 +24,9 @@ LOCAL_STORE = config.LOCAL_STORE
 LOCAL_FILE = config.LOCAL_FILE
 
 SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
-
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
+
+DRUID_STATEMENTS_URL = config.DRUID_STATEMENTS_URL
 
 # For backwards compatibility: some configurations do not specify the
 # SPARQL_METHOD parameter
@@ -131,8 +132,9 @@ def get_sparql_endpoints(url):
             sparqls.append(s)
 
     # Also add the default endpoint
-    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-    sparqls.append(sparql)
+    if SPARQL_ENDPOINT is not None:
+        sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+        sparqls.append(sparql)
 
     log.debug("Will be using the following endpoints: {}".format(
         [s.endpoint for s in sparqls]))
@@ -144,6 +146,54 @@ def get_sparql_endpoints(url):
             sparql.addParameter(key, value)
 
     return sparqls
+
+
+def druid_to_sparql_results(druid_results):
+    sparql_results = []
+    for triple in druid_results:
+        print triple
+        ds, dp, do = tuple(triple)
+
+        if ds['termType'] == u'NamedNode':
+            s = {'value': ds['value'], 'type': 'uri'}
+        elif ds['termType'] == u'BlankNode':
+            s = {'value': ds['value'], 'type': 'bnode'}
+
+        p = {'value': dp['value'], 'type': 'uri'}
+
+        if do['termType'] == u'NamedNode':
+            o = {'value': do['value'], 'type': 'uri'}
+        elif do['termType'] == u'BlankNode':
+            o = {'value': do['value'], 'type': 'bnode'}
+        elif do['termType'] == u'Literal':
+            o = {'value': do['value'], 'type': 'literal'}
+            if 'datatype' in do:
+                o['datatype'] = do['datatype']
+            if 'language' in do:
+                o['lang'] = do['language']
+
+        sparql_results.append({'s': s, 'p': p, 'o': o})
+
+    return sparql_results
+
+
+def visit_druid(url, format='html'):
+    log.debug("Visiting druid at {}".format(DRUID_STATEMENTS_URL))
+    po = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'subject': url} ).json()
+    sp = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'object': url} ).json()
+    so = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'predicate': url} ).json()
+
+    druid_results = []
+    druid_results.extend(po)
+    druid_results.extend(sp)
+    druid_results.extend(so)
+
+    sparql_results = druid_to_sparql_results(druid_results)
+
+    if format == 'html':
+        return sparql_results
+    else:
+        return 'Not supported'
 
 
 def visit_sparql(url, format='html'):
@@ -228,7 +278,12 @@ def visit_sparql(url, format='html'):
 
         # We also add local results (result of dereferencing)
         local_results = list(visit_local(url, format))
+
         results.extend(local_results)
+
+        # If a Druid statements URL is specified, we'll try to receive it as well
+        if DRUID_STATEMENTS_URL is not None:
+            results.extend(visit_druid(url, format))
 
     else:
         q = u"""
