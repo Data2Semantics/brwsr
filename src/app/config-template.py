@@ -36,6 +36,9 @@ SPARQL_ENDPOINT_MAPPING = {}
 # e.g. "http://druid.instance.url/_api/datasets/Username/Dataset/statements.triply"
 DRUID_STATEMENTS_URL = os.getenv('DRUID_STATEMENTS_URL') or None
 
+# The statements Url of a Linked Data Fragments service (http://linkeddatafragments.org),
+# e.g. "http://data.linkeddatafragments.org/dbpedia2014"
+LDF_STATEMENTS_URL = os.getenv('LDF_STATEMENTS_URL') or None
 
 # The DEFAULT_BASE is the prefix of the URI's in the triple store that can be browsed by brwsr
 # Requests to brwsr only include the local name (i.e. the the part after the third slash '/'),

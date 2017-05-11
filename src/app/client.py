@@ -27,6 +27,7 @@ SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
 SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
 
 DRUID_STATEMENTS_URL = config.DRUID_STATEMENTS_URL
+LDF_STATEMENTS_URL = config.LDF_STATEMENTS_URL
 
 # For backwards compatibility: some configurations do not specify the
 # SPARQL_METHOD parameter
@@ -57,6 +58,10 @@ def load_file(filename):
     format = rdflib.util.guess_format(filename)
     g.load(filename, format=format)
     log.info("... done loading {}".format(filename))
+
+
+def load_data(data, format="json-ld"):
+    g.parse(data=data, format=format)
 
 
 def init():
@@ -196,6 +201,18 @@ def visit_druid(url, format='html'):
         return 'Not supported'
 
 
+def retrieve_ldf_results(url):
+    log.debug("Visiting Linked Data Fragments at {}".format(LDF_STATEMENTS_URL))
+    po = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'subject': url} ).content
+    sp = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'object': url} ).content
+    so = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'predicate': url} ).content
+
+    load_data(po)
+    load_data(sp)
+    load_data(so)
+
+
+
 def visit_sparql(url, format='html'):
     sparqls = get_sparql_endpoints(url)
     predicates = get_predicates(sparqls, url)
@@ -276,6 +293,9 @@ def visit_sparql(url, format='html'):
         for process in threads:
             process.join()
 
+        if LDF_STATEMENTS_URL is not None:
+            retrieve_ldf_results(url)
+
         # We also add local results (result of dereferencing)
         local_results = list(visit_local(url, format))
 
@@ -284,6 +304,8 @@ def visit_sparql(url, format='html'):
         # If a Druid statements URL is specified, we'll try to receive it as well
         if DRUID_STATEMENTS_URL is not None:
             results.extend(visit_druid(url, format))
+
+
 
     else:
         q = u"""
