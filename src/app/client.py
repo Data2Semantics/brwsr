@@ -127,6 +127,7 @@ def visit(url, format='html', external=False):
 def get_sparql_endpoints(url):
     sparql = None
     sparqls = []
+
     for prefix, endpoint in SPARQL_ENDPOINT_MAPPING.items():
         # If the URL starts with the default base + the prefix, or
         # If the URL starts with the prefix itself, or
@@ -486,6 +487,51 @@ def dereference(uri):
 
 def query(query):
     return g.query(query)
+
+
+def remote_query(query, accept=['application/sparql-results+json', 'text/json', 'application/json']):
+    endpoints = SPARQL_ENDPOINT_MAPPING.values()
+    if SPARQL_ENDPOINT is not None:
+        endpoints.append(SPARQL_ENDPOINT)
+
+    log.debug(endpoints)
+
+    header = {'Accept': ', '.join(accept)}
+    params = {'query': query}
+
+    log.debug(header)
+
+    results = None
+    for endpoint in endpoints:
+        response = requests.get(endpoint, headers=header, params=params)
+
+        try:
+            # The response is a JSON SPARQL result
+            response_json = response.json()
+            log.debug(response_json)
+            if 'results' in response_json:
+                # Add provenance information to the bindings
+                bindings = []
+                for b in response_json['results']['bindings']:
+                    b['endpoint'] = {'value': endpoint, 'type': 'uri'}
+                    bindings.append(b)
+
+                if results is None:
+                    results = response_json
+                    results['head']['vars'].append('endpoint')
+                    results['results']['bindings'] = bindings
+                else:
+                    results['results']['bindings'].extend(bindings)
+            else:
+                raise Exception("JSON but not SPARQL results")
+        except:
+            # The response is the result of a CONSTRUCT or DESCRIBE or ASK query
+            if results is None:
+                results = '\n# ===\n# Result from {}\n# ===\n'.format(endpoint) + response.content
+            else:
+                results += '\n# ===\n# Result from {}\n# ===\n'.format(endpoint) + response.content
+
+    return results
 
 
 def prepare_sunburst(uri, results):

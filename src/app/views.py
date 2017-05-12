@@ -1,7 +1,7 @@
 from flask import render_template, request, jsonify, make_response, redirect, url_for, abort
 from werkzeug.http import parse_accept_header
 import logging
-from client import visit, query, init, prepare_sunburst
+from client import visit, query, init, prepare_sunburst, remote_query
 import config
 import traceback
 from rdflib import URIRef, Literal, BNode
@@ -208,9 +208,31 @@ def redirect(resource_suffix):
 @app.route('/sparql')
 def sparql():
     if config.LOCAL_STORE:
+        log.info('Querying locals store')
         return render_template('sparql.html', endpoint=url_for('local_sparql'))
     else:
-        return render_template('sparql.html', endpoint=config.SPARQL_ENDPOINT)
+        log.info('Querying remote endpoints')
+        return render_template('sparql.html', endpoint=url_for('remote_sparql'))
+
+
+
+@app.route('/remote/sparql', methods=['POST', 'GET'])
+def remote_sparql():
+    """This is a wrapper around remote SPARQL endpoints to allow querying from JavaScript (YASQE/YASR)"""
+    if request.method == 'POST':
+        q = request.form['query']
+    else:
+        q = request.args.get('query', '')
+
+    log.debug(q)
+    results = remote_query(q, accept=request.headers.getlist('accept'))
+    log.debug(results)
+
+    if isinstance(results, dict):
+        return jsonify(results)
+    else:
+        return results
+
 
 @app.route('/local/sparql', methods=['POST'])
 def local_sparql():
@@ -218,7 +240,7 @@ def local_sparql():
         log.debug("Querying local store")
         q = request.form['query']
         log.debug(q)
-        results =  query(q).serialize(format='json')
+        results = query(q).serialize(format='json')
         log.debug(results)
         return results
     else:
