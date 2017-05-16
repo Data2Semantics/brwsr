@@ -140,10 +140,11 @@ def graph():
 def graph_json():
     uri = request.args.get('uri', None)
 
-    results = visit(uri, format='html')
+    # Visit the selected URI up to a depth of 2
+    results = visit(uri, format='html', depth=SUNBURST_DEPTH)
     local_results = localize_results(results)
     # graph = prepare_graph(local_results)
-    labels, incoming, outgoing = prepare_sunburst(uri, local_results)
+    labels, incoming, outgoing = prepare_sunburst(uri, local_results, SUNBURST_DEPTH)
 
     return jsonify({'labels': labels, 'incoming': incoming, 'outgoing': outgoing})
 
@@ -217,7 +218,6 @@ def sparql():
     else:
         log.info('Querying remote endpoints')
         return render_template('sparql.html', endpoint=url_for('remote_sparql'))
-
 
 
 @cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)

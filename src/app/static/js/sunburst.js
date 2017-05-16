@@ -61,8 +61,8 @@ function sortChildren(tree) {
 
 function drawSunburst(service_url, root, target, inorout) {
     var width = 486,
-        height = 378,
-        radius = Math.min(width, height) / 2,
+        height = 486,
+        radius = Math.min(width, height) / 2 - 10,
         color = d3.scale.category20c();
 
 

@@ -119,3 +119,7 @@ CUSTOM_PARAMETERS = {'reasoning': 'true'}
 # The cache timeout in seconds
 CACHE_TIMEOUT = os.getenv('CACHE_TIMEOUT') or 300
 
+# Depth of the Sunburst visualization (default = 1)
+# Warning: setting this to a value > 1 will really make the visualization a *lot* slower,
+# also depending on the number of endpoints, or services you are calling.
+SUNBURST_DEPTH = os.getenv('SUNBURST_DEPTH') or 1

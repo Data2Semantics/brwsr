@@ -29,6 +29,8 @@ except:
     SPARQL_METHOD = 'GET'
 
 
+# Properties that are typically used to give the label for a resource
+# Used to render the sunburst
 label_properties = ['http://www.w3.org/2004/02/skos/core#prefLabel',
                     'http://www.w3.org/2004/02/skos/core#altLabel',
                     str(RDFS['label']),
@@ -97,7 +99,7 @@ def get_predicates(sparqls, url):
     return predicates
 
 
-def visit(url, format='html', external=False):
+def visit(url, format='html', external=False, depth=1):
     log.debug("Starting query")
 
     # If this uri is not in our namespace, and DEREFERENCE_EXTERNAL_URIS is true
@@ -107,9 +109,9 @@ def visit(url, format='html', external=False):
         dereference(url)
 
     if LOCAL_STORE:
-        return visit_local(url, format=format)
+        return visit_local(url, format=format, depth=depth)
     else:
-        return visit_sparql(url, format=format)
+        return visit_sparql(url, format=format, depth=depth)
 
 
 def get_sparql_endpoints(url):
@@ -207,8 +209,7 @@ def retrieve_ldf_results(url):
     load_data(so)
 
 
-
-def visit_sparql(url, format='html'):
+def visit_sparql(url, format='html', depth=1):
     sparqls = get_sparql_endpoints(url)
     predicates = get_predicates(sparqls, url)
 
@@ -301,7 +302,18 @@ def visit_sparql(url, format='html'):
         if DRUID_STATEMENTS_URL is not None:
             results.extend(visit_druid(url, format))
 
+        if depth > 1:
+            # If depth is larger than 1, we proceed to extend the results with the results of
+            # visiting all object resources for every triple in the resultset.
+            newresults = []
 
+            objects = set([r['o']['value'] for r in results if r['o']['value'] != url and r['o']['type']=='uri'])
+
+            for o in objects:
+                newresults.extend(
+                    visit(o, format=format, depth=depth - 1))
+
+            results.extend(newresults)
 
     else:
         q = u"""
@@ -359,7 +371,7 @@ def visit_sparql(url, format='html'):
     return results
 
 
-def visit_local(url, format='html'):
+def visit_local(url, format='html', depth=1):
     if format == 'html':
         q = u"""SELECT DISTINCT ?s ?p ?o ?g WHERE {{
             {{
@@ -520,59 +532,90 @@ def remote_query(query, accept=['application/sparql-results+json', 'text/json', 
             else:
                 raise Exception("JSON but not SPARQL results")
         except:
-            # The response is the result of a CONSTRUCT or DESCRIBE or ASK query
+            # The response is the result of a CONSTRUCT or DESCRIBE or ASK
+            # query
             if results is None:
-                results = '\n# ===\n# Result from {}\n# ===\n'.format(endpoint) + response.content
+                results = '\n# ===\n# Result from {}\n# ===\n'.format(
+                    endpoint) + response.content
             else:
-                results += '\n# ===\n# Result from {}\n# ===\n'.format(endpoint) + response.content
+                results += '\n# ===\n# Result from {}\n# ===\n'.format(
+                    endpoint) + response.content
 
     return results
 
 
-def prepare_sunburst(uri, results):
-    log.debug("Preparing sunburst")
-    incoming = {}
-    outgoing = {}
+def traverse(uri, results, source='s', target='o', visited={}, depth=0, maxdepth=2):
+    """Traverse the results and build a sunburst JSON graph in the direction indicated by source/target
+
+    i.e. to build all outgoing edges, specify 's' and 'o', respectively
+    otherwise, specify 'o' and 's'.
+    """
+
+    log.info("{} Traversing from {} to {}".format(" "*depth*10, source, target))
+#     log.debug(visited)
+    if uri in visited.keys():
+        log.debug(u"{} Already visited {}".format(" "*depth*10, uri))
+        return visited[uri], visited
+    elif depth >= maxdepth:
+        log.debug(u"Maximum depth exceeded")
+        return [], visited
+
+    log.debug(u"{} Visiting {}".format(" "*depth*10, uri))
+
+
+    edges = {}
+    edge_array = []
+
+    for r in results:
+        if r[source]['value'] != uri:
+            # Continue to next result if this result does not apply to the current node
+            continue
+
+        children = []
+        if r[target]['type'] not in ['literal', 'typed-literal']:
+            log.debug(u"{} Found child {}".format(" "*depth*10, r[target]['value']))
+
+            children, visited = traverse(r[target]['value'], results, source=source, target=target, visited=visited, depth=depth+1)
+
+            node = {
+                "name": r[target]['value'],
+                "size": 1000,
+            }
+
+            if len(children) > 0:
+                node["children"] = children
+
+            edges.setdefault(r['p']['value'], {}).setdefault('children', {})[r[target]['value']] = node
+
+    # Iterate over the edges, to rewrite to arrays of dictionaries
+    log.debug(u"{} Rewriting children dictionary to array for {}".format(" "*depth*10, uri))
+    for pk, pv in edges.items():
+        child_array = []
+        for sk, sv in pv['children'].items():
+            child_array.append(sv)
+        edge_array.append({
+            'name': pk,
+            'children': child_array
+        })
+
+    visited[uri] = edge_array
+    return edge_array, visited
+
+
+def prepare_sunburst(uri, results, maxdepth=1):
+    log.debug(u"Preparing sunburst for {}".format(uri))
+
+    # Traverse outgoing edges
+    outgoing_array, v = traverse(uri, results, source='s', target='o', visited={}, maxdepth=maxdepth)
+    # Traverse incoming edges
+    incoming_array, v = traverse(uri, results, source='o', target='s', visited={}, maxdepth=maxdepth)
 
     labels = set()
+    # Find the labels for this resource
     for r in results:
-        log.debug(r['p']['value'])
         if r['s']['value'] == uri and r['p']['value'] in label_properties:
             labels.add(r['o']['value'])
 
-        if r['s']['value'] == uri and r['o']['type'] not in ['literal', 'typed-literal']:
-            # print "outgoing", r['s']['value'], r['p']['value'],
-            # r['o']['value']
-            outgoing.setdefault(r['p']['value'], {}).setdefault('children', {})[r['o']['value']] = {
-                "name": r['o']['value'],
-                "size": 1000
-            }
-        elif r['o']['value'] == uri:
-            # print "incoming", r['s']['value'], r['p']['value'],
-            # r['o']['value']
-            incoming.setdefault(r['p']['value'], {}).setdefault('children', {})[r['s']['value']] = {
-                "name": r['s']['value'],
-                "size": 1000
-            }
-
-    incoming_array = []
-    for pk, pv in incoming.items():
-        edge_array = []
-        for sk, sv in pv['children'].items():
-            edge_array.append(sv)
-        incoming_array.append({
-            'name': pk,
-            'children': edge_array
-        })
-
-    outgoing_array = []
-    for pk, pv in outgoing.items():
-        edge_array = []
-        for ok, ov in pv['children'].items():
-            edge_array.append(ov)
-        outgoing_array.append({
-            'name': pk,
-            'children': edge_array
-        })
-
     return list(labels), {'name': uri, 'children': incoming_array}, {'name': uri, 'children': outgoing_array}
+
+    
