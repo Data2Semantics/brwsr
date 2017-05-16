@@ -49,6 +49,8 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 | `LOCAL_FILE` | File path | `None` | Set `LOCAL_FILE` to the relative or absolute path of the file you want brwsr to load when `LOCAL_STORE` is True. The brwsr application will just use RDFLib to guess the file format based on the extension. You can use UNIX file masks such as * and ? to load multiple files. When using Docker, make sure the files are on a filesystem that is accessible to Docker | both |
 | `SPARQL_ENDPOINT` | URL | `http://your.sparql.endpoint.here/sparql` | Set this to the SPARQL endpoint uri of your triplestore e.g. `http://dbpedia.org/sparql` | both |
 | `SPARQL_ENDPOINT_MAPPING` | Dictionary | `None` | If brwsr is backed by multiple separate triple stores, use `SPARQL_ENDPOINT_MAPPING` to make sure that each URI for which the `LOCAL_NAME` (i.e. the URI with the `DEFAULT_BASE` removed, if present) starts with a key of the `SPARQL_ENDPOINT_MAPPING` dictionary, the proper SPARQL endpoint is used.  You can also use Python-style regular expressions in the prefix description (the keys of this dictionary)  Note that brwsr will allways *also* query the default `SPARQL_ENDPOINT` (see example in `config-template.py`). | only `config.py` |
+| `DRUID_STATEMENTS_URL` | URL | `None` | Set this to the statements URL of a Druid instance (<http://triply.cc>), e.g. <"http://druid.instance.url/_api/datasets/Username/Dataset/statements.triply"> | both |
+| `LDF_STATEMENTS_URL` | URL | `None` | Set this to the statements URL of a Linked Data Fragments service (<http://linkeddatafragments.org>), e.g. <http://data.linkeddatafragments.org/dbpedia2014> | both |
 | `DEFAULT_BASE` | URI | `http://your.base.uri.here` | The DEFAULT_BASE is the prefix of the URI's in the triple store that can be browsed by brwsr. Requests to brwsr only include the local name (i.e. the the part after the third slash '/'), the `DEFAULT_BASE` is *always* prepended to this local name to make up the URI that's used to query the triple store: e.g. `http://dbpedia.org` (without the last slash!)| both |
 | `LOCAL_DOCUMENT_INFIX` | String | `doc` | The `LOCAL_DOCUMENT_INFIX` is the infix used between the `DEFAULT_BASE` and the local name of the URI to denote the HTML representation of the RDF resource (see the Cool URI's specification) | both |
 | `LOCAL_SERVER_NAME` | URI | `http://your.server.name.here` | The LOCAL_SERVER_NAME is the address brwsr listens to. It needs to know this to build proper requests when you click a URI in the brwsr page of a resource: e.g. "http://localhost:5000" if running Flask. | both |
@@ -62,6 +64,8 @@ In short, it is a very lightweight Python-based alternative to Pubby (with a sli
 | `DEBUG` | `True`, `False` | `False` | Switch on debug logging | both |
 | `SPARQL_METHOD` | `GET`, `POST` | `GET` | Set the HTTP method to use for communicating with SPARQL endpoint. | both
 | `CUSTOM_PARAMETERS` | Dictionary | `{'reasoning': True}` | Set any custom parameters to be sent to the SPARQL endpoint, e.g. `CUSTOM_PARAMETERS = {'reasoning': 'true'}` for Stardog | only `config.py` |
+| `CACHE_TIMEOUT` | Integer | `300` | Set the cache timeout in seconds | both |
+| `SUNBURST_DEPTH`| Integer | `1` | Depth of the Sunburst visualization (default = 1). **Warning**: setting this to a value > 1 will really make the visualization a *lot* slower, also depending on the number of endpoints, or services you are calling.| both |
 
 
 
