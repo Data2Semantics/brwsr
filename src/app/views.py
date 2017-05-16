@@ -6,7 +6,7 @@ from config import *
 import traceback
 from rdflib import URIRef, Literal, BNode
 
-from app import app
+from app import app, cache
 from datetime import datetime
 print "views", datetime.now().isoformat()
 
@@ -14,6 +14,10 @@ log = app.logger
 log.setLevel(logging.DEBUG)
 
 
+def make_cache_key(*args, **kwargs):
+    path = request.path
+    args = str(hash(frozenset(request.args.items())))
+    return (path + args).encode('utf-8')
 
 def localize_rdflib_result(resource):
     resource_result = {}
@@ -117,18 +121,22 @@ def document(resource_suffix=""):
         return make_response("Incorrect mimetype or other error", 400)
 
 
+
 @app.route('/favicon.ico')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def icon():
     return jsonify({'error': "no icon"})
 
 
 @app.route('/graph')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def graph():
     uri = request.args.get('uri', None)
     return render_template('graph.html', uri=uri, service_url="{}/graph/json".format(LOCAL_SERVER_NAME), local=LOCAL_STORE)
 
 
 @app.route('/graph/json')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def graph_json():
     uri = request.args.get('uri', None)
 
@@ -141,6 +149,7 @@ def graph_json():
 
 
 @app.route('/browse')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def browse():
     uri = request.args.get('uri', None)
 
@@ -177,6 +186,7 @@ def browse():
 
 
 @app.route('/<path:resource_suffix>')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def redirect(resource_suffix):
     log.debug("Retrieved resource_suffix " + resource_suffix)
     if resource_suffix.startswith('{}/'.format(LOCAL_DOCUMENT_INFIX)):
@@ -197,7 +207,9 @@ def redirect(resource_suffix):
 
         return response
 
+
 @app.route('/sparql')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def sparql():
     if config.LOCAL_STORE:
         log.info('Querying locals store')
@@ -208,6 +220,7 @@ def sparql():
 
 
 
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 @app.route('/remote/sparql', methods=['POST', 'GET'])
 def remote_sparql():
     """This is a wrapper around remote SPARQL endpoints to allow querying from JavaScript (YASQE/YASR)"""
@@ -227,6 +240,7 @@ def remote_sparql():
 
 
 @app.route('/local/sparql', methods=['POST'])
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def local_sparql():
     if config.LOCAL_STORE:
         log.debug("Querying local store")
@@ -240,6 +254,7 @@ def local_sparql():
 
 
 @app.route('/')
+@cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def index():
     if len(START_LOCAL_NAME) > 0:
 

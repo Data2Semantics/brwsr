@@ -1,4 +1,5 @@
 from flask import Flask
+from flask.ext.cache import Cache
 from flask_bootstrap import Bootstrap
 import os
 import config, client
@@ -42,6 +43,7 @@ class ReverseProxied(object):
 
 app = Flask(__name__)
 Bootstrap(app)
+cache = Cache(app,config={'CACHE_TYPE': 'simple'})
 
 # Do something special if the application root is other than the default ("/")
 try:

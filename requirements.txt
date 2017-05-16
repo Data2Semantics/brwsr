@@ -1,5 +1,6 @@
 Flask==0.10.1
 Flask-Bootstrap==3.3.0.1
+Flask-Cache==0.13.1
 gevent==1.0.1
 gevent-socketio==0.3.6
 gevent-websocket==0.9.3

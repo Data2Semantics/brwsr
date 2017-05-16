@@ -115,3 +115,7 @@ SPARQL_METHOD = os.getenv('SPARQL_METHOD') or 'GET'
 # e.g. CUSTOM_PARAMETERS = {'reasoning': 'true'} for Stardog
 # NB: This parameter cannot be set using environment variables
 CUSTOM_PARAMETERS = {'reasoning': 'true'}
+
+# The cache timeout in seconds
+CACHE_TIMEOUT = os.getenv('CACHE_TIMEOUT') or 300
+
