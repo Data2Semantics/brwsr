@@ -2,7 +2,7 @@ from flask import render_template, request, jsonify, make_response, redirect, ur
 from werkzeug.http import parse_accept_header
 import logging
 from client import visit, query, init, prepare_sunburst, remote_query
-import config
+from config import *
 import traceback
 from rdflib import URIRef, Literal, BNode
 
@@ -13,14 +13,6 @@ print "views", datetime.now().isoformat()
 log = app.logger
 log.setLevel(logging.DEBUG)
 
-LOCAL_STORE = config.LOCAL_STORE
-DEFAULT_BASE = config.DEFAULT_BASE
-LOCAL_DOCUMENT_INFIX = config.LOCAL_DOCUMENT_INFIX
-LOCAL_SERVER_NAME = config.LOCAL_SERVER_NAME
-START_LOCAL_NAME = config.START_LOCAL_NAME
-START_URI = config.START_URI
-BROWSE_EXTERNAL_URIS = config.BROWSE_EXTERNAL_URIS
-DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
 
 def localize_rdflib_result(resource):

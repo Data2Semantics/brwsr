@@ -2,7 +2,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON, XML
 from threading import Thread
 import logging
 import requests
-import config
+from config import *
 import rdfextras
 import traceback
 import glob
@@ -20,27 +20,14 @@ print "client", datetime.now().isoformat()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-LOCAL_STORE = config.LOCAL_STORE
-LOCAL_FILE = config.LOCAL_FILE
-
-SPARQL_ENDPOINT_MAPPING = config.SPARQL_ENDPOINT_MAPPING
-SPARQL_ENDPOINT = config.SPARQL_ENDPOINT
-
-DRUID_STATEMENTS_URL = config.DRUID_STATEMENTS_URL
-LDF_STATEMENTS_URL = config.LDF_STATEMENTS_URL
-
 # For backwards compatibility: some configurations do not specify the
 # SPARQL_METHOD parameter
 try:
-    SPARQL_METHOD = config.SPARQL_METHOD
+    if SPARQL_METHOD is not None:
+        pass
 except:
     SPARQL_METHOD = 'GET'
 
-DEFAULT_BASE = config.DEFAULT_BASE
-
-QUERY_RESULTS_LIMIT = config.QUERY_RESULTS_LIMIT
-CUSTOM_PARAMETERS = config.CUSTOM_PARAMETERS
-DEREFERENCE_EXTERNAL_URIS = config.DEREFERENCE_EXTERNAL_URIS
 
 label_properties = ['http://www.w3.org/2004/02/skos/core#prefLabel',
                     'http://www.w3.org/2004/02/skos/core#altLabel',
@@ -70,7 +57,8 @@ def init():
         try:
             files = glob.glob(LOCAL_FILE)
             if len(files) == 0:
-                log.error("No files match the UNIX file pattern specified in {}, or the pattern is invalid.".format(LOCAL_FILE))
+                log.error(
+                    "No files match the UNIX file pattern specified in {}, or the pattern is invalid.".format(LOCAL_FILE))
                 return
             for filename in files:
                 log.info("Trying to load file: {}".format(filename))
@@ -185,9 +173,12 @@ def druid_to_sparql_results(druid_results):
 
 def visit_druid(url, format='html'):
     log.debug("Visiting druid at {}".format(DRUID_STATEMENTS_URL))
-    po = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'subject': url} ).json()
-    sp = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'object': url} ).json()
-    so = requests.get(DRUID_STATEMENTS_URL, headers={'Accept': 'text/json'}, params={'predicate': url} ).json()
+    po = requests.get(DRUID_STATEMENTS_URL, headers={
+                      'Accept': 'text/json'}, params={'subject': url}).json()
+    sp = requests.get(DRUID_STATEMENTS_URL, headers={
+                      'Accept': 'text/json'}, params={'object': url}).json()
+    so = requests.get(DRUID_STATEMENTS_URL, headers={
+                      'Accept': 'text/json'}, params={'predicate': url}).json()
 
     druid_results = []
     druid_results.extend(po)
@@ -204,9 +195,12 @@ def visit_druid(url, format='html'):
 
 def retrieve_ldf_results(url):
     log.debug("Visiting Linked Data Fragments at {}".format(LDF_STATEMENTS_URL))
-    po = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'subject': url} ).content
-    sp = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'object': url} ).content
-    so = requests.get(LDF_STATEMENTS_URL, headers={'Accept': 'application/json'}, params={'predicate': url} ).content
+    po = requests.get(LDF_STATEMENTS_URL, headers={
+                      'Accept': 'application/json'}, params={'subject': url}).content
+    sp = requests.get(LDF_STATEMENTS_URL, headers={
+                      'Accept': 'application/json'}, params={'object': url}).content
+    so = requests.get(LDF_STATEMENTS_URL, headers={
+                      'Accept': 'application/json'}, params={'predicate': url}).content
 
     load_data(po)
     load_data(sp)
@@ -302,7 +296,8 @@ def visit_sparql(url, format='html'):
 
         results.extend(local_results)
 
-        # If a Druid statements URL is specified, we'll try to receive it as well
+        # If a Druid statements URL is specified, we'll try to receive it as
+        # well
         if DRUID_STATEMENTS_URL is not None:
             results.extend(visit_druid(url, format))
 
