@@ -7,9 +7,11 @@ $( document ).ready(function() {
 
       if (element_text && (element_text.substr(0,4) == 'http' || element_text.substr(0,6) == 'nodeID')) {
             updateLabel(element_text,element);
-            $.get('http://preflabel.org/api/v1/label/'+encodeURIComponent($(element).text())+"?callback=?", function(data){
-              updateLabel(data,element);
-            });
+            if (preflabel_service == true) {
+              $.get('http://preflabel.org/api/v1/label/'+encodeURIComponent($(element).text())+"?callback=?", function(data){
+                updateLabel(data,element);
+              });
+            }
       }
     });
 

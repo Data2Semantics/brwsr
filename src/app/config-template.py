@@ -123,3 +123,6 @@ CACHE_TIMEOUT = os.getenv('CACHE_TIMEOUT') or 300
 # Warning: setting this to a value > 1 will really make the visualization a *lot* slower,
 # also depending on the number of endpoints, or services you are calling.
 SUNBURST_DEPTH = os.getenv('SUNBURST_DEPTH') or 1
+
+# Use the prefLabel.org service for rendering labels for known URIs
+PREFLABEL_SERVICE = os.getenv('PREFLABEL_SERVICE') or True

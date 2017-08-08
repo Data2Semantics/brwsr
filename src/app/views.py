@@ -102,7 +102,7 @@ def document(resource_suffix=""):
             results = visit(uri, format='html')
             local_results = localize_results(results)
 
-            return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results, local=LOCAL_STORE)
+            return render_template('resource.html', local_resource=local_resource_uri, resource=uri, results=local_results, local=LOCAL_STORE, preflabel=PREFLABEL_SERVICE)
         elif mimetype in ['application/json']:
             response = make_response(visit(uri,format='jsonld'),200)
             response.headers['Content-Type'] = 'application/json'
@@ -167,7 +167,7 @@ def browse():
             if mimetype in ['text/html', 'application/xhtml_xml', '*/*']:
                 results = visit(uri, format='html', external=True)
                 local_results = localize_results(results)
-                return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results, local=LOCAL_STORE)
+                return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results, local=LOCAL_STORE, preflabel=PREFLABEL_SERVICE)
             elif mimetype in ['application/json']:
                 response = make_response(visit(uri, format='jsonld', external=True), 200)
                 response.headers['Content-Type'] = 'application/json'
@@ -213,7 +213,7 @@ def redirect(resource_suffix):
 @cache.cached(timeout=CACHE_TIMEOUT, key_prefix=make_cache_key)
 def sparql():
     if config.LOCAL_STORE:
-        log.info('Querying locals store')
+        log.info('Querying local store')
         return render_template('sparql.html', endpoint=url_for('local_sparql'))
     else:
         log.info('Querying remote endpoints')
