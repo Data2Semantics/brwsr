@@ -165,8 +165,13 @@ def browse():
 
         try:
             if mimetype in ['text/html', 'application/xhtml_xml', '*/*']:
-                results = visit(uri, format='html', external=True)
+                try:
+                    results = visit(uri, format='html', external=True)
+                except: #when the uri is a javascript injection (or any other illegal string) this will fail and the uri shouldn't be send to the response
+                    return render_template('resource.html', local_resource='http://bla', resource="error in sparql query", results=[], local=LOCAL_STORE, preflabel=PREFLABEL_SERVICE)
                 local_results = localize_results(results)
+                if local_results == []: #when there are no results the uri might be a javascript injection and the uri shouldn't be send to the response
+                    uri = "unknown uri"
                 return render_template('resource.html', local_resource='http://bla', resource=uri, results=local_results, local=LOCAL_STORE, preflabel=PREFLABEL_SERVICE)
             elif mimetype in ['application/json']:
                 response = make_response(visit(uri, format='jsonld', external=True), 200)
